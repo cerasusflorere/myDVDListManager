@@ -324,14 +324,14 @@
     </main>
 
     <script>
-        function previewFile(hoge){
+        function previewFile(photo_path){
             var fileData = new FileReader();
             fileData.onload = (function() {
                 //id属性が付与されているimgタグのsrc属性に、fileReaderで取得した値の結果を入力することで
                 //プレビュー表示している
                 document.getElementById('preview').src = fileData.result;
             });
-            fileData.readAsDataURL(hoge.files[0]);
+            fileData.readAsDataURL(photo_path.files[0]);
         }
 
         document.querySelector("#add_player_impressions_photo_button").addEventListener("click", () => {
