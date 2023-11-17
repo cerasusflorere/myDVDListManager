@@ -90,7 +90,21 @@
     width: 3.2rem;
     font-size: 0.8rem;
   }
+  .add-add-minus-button-area {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
   .add-add-button-area {
+    visibility: visible;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    height: 2.5rem;
+  }
+  .add-minus-button-area {
+    visibility: visible;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -123,6 +137,12 @@
     font-weight: 600;
   }
 
+  .add-title-kana-area {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
   .add-title {
     display: flex;
     flex-direction: row;
@@ -137,6 +157,10 @@
   .add-title:focus {
     outline: 0;
     border: 0.25rem solid #ffa8a8;
+  }
+  .add-title-kana {
+    font-size: 0.8rem;
+    height: 2.5rem;
   }
 
   .add-duration-input-area {
@@ -170,6 +194,7 @@
     display: flex;
     flex-direction: column;
     align-items: stretch;
+    gap: 1rem;
   }
   .add-location {
     display: flex;
@@ -236,6 +261,46 @@
   .add-story:focus {
     outline: 0;
     border: 0.25rem solid #ffa8a8;
+  }
+
+  .add-players-all {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 35rem;
+    height: 2.5rem;
+    padding: 0.5rem 1.2rem;
+    border-radius: 2rem;
+    border: 0.25rem solid #ffffad;
+  }
+  .add-players-all:focus {
+    outline: 0;
+    border: 0.25rem solid #ffa8a8;
+  }
+  .add-players-all-button {
+    display: flex;    
+    align-items: center;
+    justify-content: center;
+    margin-left: 2rem;
+    width: 3rem;
+    height: 2.5rem;
+    border-radius: 1rem;    
+    border: 0.25rem solid #ffffad;    
+    border: none;
+    background-color: #ffffad;
+    color: #acacac;
+    cursor: pointer;
+  }
+  .add-players-all-button:hover, .add-players-all-button:focus-visible {
+    outline: 0;    
+    border: 0.1rem solid #ffa8a8;
+  }
+  .add-players-all-button:active {    
+    outline: 0;
+    border: 0.1rem solid #ffa8a8;
+    background-color: #ffa8a8;
+    color: #ffff;
+    font-weight: 600;
   }
 
   .add-players-groups-area {
@@ -375,7 +440,7 @@
 
   .add-player-impressions-area {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: flex-end;
     margin-left: 3.6rem;
     gap: 0.2rem;
   }
@@ -587,24 +652,24 @@
     gap: 1rem;
   }
   .add-special-header {    
-    margin-top: 0.1rem;
+    margin-top: 0.2rem;
     font-size: 0.8rem;
   }
-  .add-official-header {
+  .add-url-header {
     margin-top: 0.4rem;
   }
-  .add-official-DVD-movie-area {
+  .add-url-DVD-movie-area {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
   }
-  .add-official-DVD-movie-block {
+  .add-url-DVD-movie-block {
     display: flex;
     align-items: center;
     gap: 0.2rem;
   }
-  .add-official-DVD-movie-header {
+  .add-url-DVD-movie-header {
     font-size: 0.8rem;
     width: 4rem;
   }
@@ -626,4 +691,7 @@
   .add-special-input-text:focus {
     outline: 0;    
     border: 0.25rem solid #ffa8a8;
+  }
+  .add-category {
+    width: 10rem;
   }
