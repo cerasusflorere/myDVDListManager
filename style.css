@@ -263,6 +263,21 @@
     border: 0.25rem solid #ffa8a8;
   }
 
+  .add-author {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 15rem;
+    height: 2.5rem;
+    padding: 0.5rem 1.2rem;
+    border-radius: 2rem;
+    border: 0.25rem solid #ffffad;
+  }
+  .add-author:focus {
+    outline: 0;
+    border: 0.25rem solid #ffa8a8;
+  }
+
   .add-players-all {
     display: flex;
     flex-direction: row;
