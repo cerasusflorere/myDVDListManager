@@ -70,6 +70,7 @@
                 :src="photo.url"
                 :alt="index"
               >
+              <input type="button" class="detail-show-photo-button" @click="openModal_photo(photo.url)">
             </figure>
           </div>
         </div>
@@ -167,6 +168,7 @@
                   :src="roleImpression.photos[0].url"
                   :alt="roleImpression.role"
                 >
+                <input type="button" class="detail-show-photo-button" @click="openModal_photo(roleImpression.photos[0].url)">
               </figure>
             </div>
           </div>
@@ -788,6 +790,7 @@
     </div>
     <messageDialog :postMessage_Message="dialog_message" v-show="showContent_message" @close="closeModal_message"/>
     <confirmDialog :postMessage_Confirm="dialog_confirm" v-show="showContent_confirm" @Cancel="closeModal_confirm_Cancel" @OK="closeModal_confirm_OK"/>
+    <photoDialog :postURL="dialog_url" v-show="showContent_photo" @close="closeModal_photo"/>
   </div>
 </template>
 
@@ -795,6 +798,7 @@
 import { OK, UNPROCESSABLE_ENTITY } from '../util'
 import messageDialog from '../components/Message_Dialog.vue'
 import confirmDialog from '../components/Confirm_Dialog.vue'
+import photoDialog from '../components/Photo_Dialog.vue'
 
 import draggable from 'vuedraggable'
 
@@ -814,6 +818,7 @@ export default {
   components: {
     messageDialog,
     confirmDialog,
+    photoDialog,
     draggable
   },
   // データ
@@ -875,6 +880,9 @@ export default {
       // confirm
       showContent_confirm: false,
       dialog_confirm: '',
+      // photo
+      showContent_photo: false,
+      dialog_url: '',
 
       // タブ
       tab: 1,
@@ -948,10 +956,6 @@ export default {
       },
       immediate: true,
     }
-  },  
-  mounted() {
-    
-
   },
   methods: {
     // ランダム文字列作成
@@ -1802,6 +1806,16 @@ export default {
       if (response.status === 204) {
         window.close();
       }
+    },
+
+    // 写真拡大
+    openModal_photo(url) {
+      this.showContent_photo = true;
+      this.dialog_url = url;
+    },
+    closeModal_photo() {
+      this.showContent_photo = false;
+      this.dialog_url = '';
     },
 
     // フォーム関係
