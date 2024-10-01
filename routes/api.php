@@ -24,6 +24,9 @@ Route::get('/DVDs_all', 'App\Http\Controllers\DVDController@index')->name('DVD.i
 // DVD貸出一覧取得
 Route::get('/DVDs_rent', 'App\Http\Controllers\DVDController@rent')->name('DVD.rent');
 
+// 劇場一覧取得
+Route::get('/theater', 'App\Http\Controllers\DVDController@theater')->name('DVD.theater');
+
 // 戯曲一覧取得
 Route::get('/author', 'App\Http\Controllers\DVDController@author')->name('DVD.author');
 
