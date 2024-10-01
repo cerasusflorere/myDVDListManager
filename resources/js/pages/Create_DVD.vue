@@ -448,7 +448,10 @@
                   <div class="add-others-cell add-others-header-cell add-others-cell-title">
                     題名
                   </div>
-                  <div class="add-others-cell add-others-header-cell add-others-cell-impression">
+                  <div class="add-others-cell add-others-header-cell add-songs-cell-singer">
+                    歌い手
+                  </div>
+                  <div class="add-others-cell add-others-header-cell add-songs-cell-impression">
                     感想
                   </div>
                 </div>
@@ -457,12 +460,76 @@
                 <div class="add-others-bodyblock">
                   <draggable v-model="registerForm.songList" group="songList" item-key="key" tag="section">
                     <!-- 1セット -->
-                    <template #item="{element : song}">
+                    <template #item="{element : song, index: songIndex}">
                       <div class="add-others-bodyline">
                         <div class="add-others-cell add-others-body-cell add-others-cell-title">
                           <input type="text" class="add-others-input add-others-title" v-model="song.title">
                         </div>
-                        <div class="add-others-cell add-others-body-cell add-others-cell-impression">
+
+                        <div class="add-others-cell add-others-body-cell add-songs-cell-singer add-singers-body-cell-singer">
+                          <div class="add-song-singer-area">
+                            <draggable v-model="song.singers" group="songList_singers" item-key="key" tag="section">
+                              <template #item="{element : singer}">
+                                <div class="add-song-singers-area">
+                                  <div class="add-song-singer-type-area">
+                                    <div class="add-song-singer-type-box">
+                                      <label for="add_song_role">キャスト</label>
+                                      <input id="add_song_role" type="radio" class="add-song-singer-type-radio" value="role" v-model="singer.type">
+                                    </div>
+                                    <div class="add-song-singer-type-box">
+                                      <label for="add_song_group">分類</label>
+                                      <input id="add_song_group" type="radio" class="add-song-singer-type-radio" value="group" v-model="singer.type">
+                                    </div>
+                                    <div class="add-song-singer-type-box">
+                                      <label for="add_song_input">入力</label>
+                                      <input id="add_song_input" type="radio" class="add-song-singer-type-radio" value="input" v-model="singer.type">
+                                    </div>
+                                  </div>
+
+                                  <div class="add-song-singer-select-area">
+                                    <select class="add-song-singer-select-input" v-if="singer.type === 'role'" v-model="singer.name">
+                                      <option value="">選択</option>
+                                      <option v-for="role in optionRoles" 
+                                        :value="role.key" :key="role.key">
+                                        {{ role.role }}
+                                      </option>
+                                    </select>
+
+                                    <select class="add-song-singer-select-input" v-if="singer.type === 'group'" v-model="singer.name">
+                                      <option value="">選択</option>
+                                      <option v-for="group in optionGroups" 
+                                        :value="group.key" :key="group.key">
+                                        {{ group.name }}
+                                      </option>
+                                    </select>
+
+                                    <input type="text" class="add-song-singer-select-input" v-if="singer.type === 'input'" v-model="singer.name">
+                                  </div>
+                                </div>
+                              </template>
+                            </draggable>                            
+
+                            <!-- フォームボタン -->
+                            <div class="add-add-minus-button-area add-add-minus-button-area-small">
+                              <div :ref="'add_minus_button_area_singers_form_' + songIndex" class="add-minus-button-area add-minus-button-area-small" style="visibility: hidden">
+                                <button type="button" class="add-add-button add-add-button-small" @click="minusSingerForm(songIndex, 'add_minus_button_area_singers_form_' + songIndex, 'add_add_button_area_singers_form_' + songIndex)">
+                                  <div class="add-add-button-icon add-add-button-icon-small">
+                                    <i class="fa-solid fa-minus"></i>
+                                  </div>
+                                </button>
+                              </div>
+                              <div :ref="'add_add_button_area_singers_form_' + songIndex" class="add-add-button-area add-minus-button-area-small">
+                                <button type="button" class="add-add-button add-add-button-small" @click="plusSingerForm(songIndex, 'add_minus_button_area_singers_form_' + songIndex, 'add_add_button_area_singers_form_' + songIndex)">
+                                  <div class="add-add-button-icon add-add-button-icon-small">
+                                    <i class="fa-solid fa-plus"></i>
+                                  </div>
+                                </button>
+                              </div>
+                            </div>
+                          </div>  
+                        </div>
+
+                        <div class="add-others-cell add-others-body-cell add-songs-cell-impression">
                           <textarea class="add-others-input add-others-impression" placeholder="どうだった？" v-model="song.impression"></textarea>
                         </div>
                       </div>
@@ -571,31 +638,31 @@
         <div class="add-block-2">
           <div class="add-special-area">
             <div class="add-special-area">
-              <div class="add-special-header add-official-header">
+              <label for="add_format_DVD" class="add-special-header add-official-header">
                 DVD
-              </div>
-              <input type="radio" v-model="registerForm.format" value=1 class="add-special-input add-special" checked>
+              </label>
+              <input id="add_format_DVD" type="radio" v-model="registerForm.format" value=1 class="add-special-input add-special" checked>
             </div>
 
             <div class="add-special-area">
-              <div class="add-special-header add-official-header">
+              <label for="add_format_Blu" class="add-special-header add-official-header">
                 Blu-ray
-              </div>
-              <input type="radio" v-model="registerForm.format" value=2 class="add-special-input add-special">
+              </label>
+              <input id="add_format_Blu" type="radio" v-model="registerForm.format" value=2 class="add-special-input add-special">
             </div>
           </div>
           <div class="add-special-area">
-            <div class="add-special-header add-official-header">
+            <label for="add_official" class="add-special-header add-official-header">
               公式
-            </div>
-            <input type="checkbox" v-model="registerForm.official" class="add-special-input add-special" checked>
+            </label>
+            <input id="add_official" type="checkbox" v-model="registerForm.official" class="add-special-input add-special" checked>
           </div>
 
           <div class="add-special-area">
-            <div class="add-special-header">
+            <label for="add_special" class="add-special-header">
               特典
-            </div>
-            <input type="checkbox" v-model="registerForm.special" class="add-special-input add-special">
+            </label>
+            <input id="add_special" type="checkbox" v-model="registerForm.special" class="add-special-input add-special">
           </div>
 
           <div class="add-special-area">
@@ -616,6 +683,13 @@
                 </div>
                 <input type="text" v-model="registerForm.url_movie" class="add-special-input add-special-input-text add-url-movie">
               </div>
+
+              <div class="add-url-DVD-movie-block add-url-movie-area">
+                <div class="add-url-DVD-movie-header add-url-movie-header">
+                  映像
+                </div>
+                <input type="text" v-model="registerForm.url_youtube" class="add-special-input add-special-input-text add-url-movie">
+              </div>
             </div>
           </div>
 
@@ -623,12 +697,12 @@
             <div class="add-special-header add-category-header">
               カテゴリー
             </div>
-              <select class="add-special-input add-special-input-text add-category" v-model="registerForm.category">
-                <option v-for="category in optionCategories" 
-                  :value="category.value">
-                  {{ category.title }}
-                </option>
-              </select>
+            <select class="add-special-input add-special-input-text add-category" v-model="registerForm.category">
+              <option v-for="category in optionCategories" 
+                :value="category.value">
+                {{ category.title }}
+              </option>
+            </select>
           </div>
         </div>
       </div>
@@ -671,11 +745,12 @@
           costumerList: [{name: null}],
           lyricist: '',
           choreo: '',
-          playerList : [{key: null, order:0, group_key: "", role: null, player: null, member: false}],
+          director: '',
+          playerList : [{key: null, order:0, group_key: '', role: null, player: null, member: false}],
           groupList : [{key: null, order: 0, name: null}],
-          roleImpressionList: [{order: 0, role_key: "", impression: null, preview: null, photo: null}],
+          roleImpressionList: [{order: 0, role_key: '', impression: null, preview: null, photo: null}],
           historyList: [{title: null, history: null}],
-          songList: [{title: null, impression: null}],
+          songList: [{title: null, singers: [{type: 'role', name: ''}], impression: null}],
           otherList: [{title: null, impression: null}],
           preview: null,
           photo: '',
@@ -684,6 +759,7 @@
           special: false,
           url_DVD: '',
           url_movie: '',
+          url_youtube: '',
           category: 1
         },
         playersAll: null,
@@ -992,6 +1068,7 @@
         count = 0;
         formData.append('lyricist', this.registerForm.lyricist ? this.registerForm.lyricist.replace(/\s+/g,'') : '');
         formData.append('choreo', this.registerForm.choreo ? this.registerForm.choreo.replace(/\s+/g,'') : '');
+        formData.append('directory', this.registerForm.director ? this.registerForm.director.replace(/\s+/g,'') : '');
         for(let i = 0; i < this.registerForm.groupList.length; i++) {
           const group = this.registerForm.groupList[i];
           if(group.name){
@@ -1096,6 +1173,7 @@
         formData.append('special', this.registerForm.special ? 1 : 0);
         formData.append('url_DVD', this.registerForm.url_DVD);
         formData.append('url_movie', this.registerForm.url_movie);
+        formData.append('url_youtube', this.registerForm.url_youtube);
         formData.append('category', this.registerForm.category);
 
         const response = await axios.post('/api/DVD', formData);
@@ -1216,6 +1294,7 @@
           special: false,
           url_DVD: '',
           url_movie: '',
+          url_youtube: '',
           category: 1
         };
         this.playersAll = null;
@@ -1526,7 +1605,7 @@
         if(this.registerForm.songList.length < 10) {
           // 追加
           this.registerForm.songList.push({
-            title: null, impression: null
+            title: null, singers:[{type: 'role', name: ''}], impression: null
           });
 
           if(this.registerForm.songList.length === 2) {
@@ -1545,6 +1624,34 @@
             this.$refs.add_minus_button_area_songs_form.style.visibility = 'hidden';
           } else if (this.registerForm.songList.length === 9) {
             this.$refs.add_add_button_area_songs_form.style.visibility = 'visible';
+          }
+        }
+      },
+
+      // 歌手フォーム
+      plusSingerForm(songIndex, minusButton, addButton) {
+        if(this.registerForm.songList[songIndex].singers.length < 10) {
+          // 追加
+          this.registerForm.songList[songIndex].singers.push({
+            type: 'role', name: ''
+          });
+
+          if(this.registerForm.songList[songIndex].singers.length === 2) {
+            this.$refs[minusButton].style.visibility = 'visible';
+          } else if (this.registerForm.songList[songIndex].singers.length === 10) {
+            this.$refs[addButton].style.visibility = 'hidden';
+          }
+        }
+      },
+      minusSingerForm(songIndex, minusButton, addButton) {
+        if(this.registerForm.songList[songIndex].singers.length > 1) {
+          // 削除
+          this.registerForm.songList[songIndex].singers.pop();
+
+          if(this.registerForm.songList[songIndex].singers.length === 1){
+            this.$refs[minusButton].style.visibility = 'hidden';
+          } else if (this.registerForm.songList[songIndex].singers.length === 9) {
+            this.$refs[addButton].style.visibility = 'visible';
           }
         }
       },

@@ -58,6 +58,13 @@
             <a :href="DVD.url_movie" class="detail-show-info-header" target="_blank" rel="noopener noreferrer">{{ DVD.url_movie }}</a>
           </div>
         </div>
+
+        <div class="detail-show-info-line" v-if="DVD.url_youtube">
+          <div class="detail-show-info-block">
+            <div class="detail-show-info-header">映像:</div>
+            <a :href="DVD.url_youtube" class="detail-show-info-header" target="_blank" rel="noopener noreferrer">{{ DVD.url_youtube }}</a>
+          </div>
+        </div>
       </div>
 
       <!-- 写真 -->
@@ -125,6 +132,12 @@
       <div class="detail-show-author-area" v-if="DVD.choreo">
         <div class="detail-show-header">振付</div>
         <div class="detail-show-author">{{ DVD.choreo }}</div>
+      </div>
+
+      <!-- ゲキ×シネ監督 -->
+      <div class="detail-show-author-area" v-if="DVD.director">
+        <div class="detail-show-header">ゲキ×シネ監督</div>
+        <div class="detail-show-author">{{ DVD.director }}</div>
       </div>
 
       <!-- あらすじ -->
@@ -373,6 +386,14 @@
                 振付
               </div>
               <input type="text" v-model="editDVD.choreo" class="add-author">
+            </div>
+
+            <!-- ゲキ×シネ監督 -->
+            <div class="add-area add-author-area">
+              <div class="add-header">
+                ゲキ×シネ監督
+              </div>
+              <input type="text" v-model="editDVD.director" class="add-author">
             </div>
             
             <!-- 出演者纏めて入力 -->
@@ -821,17 +842,17 @@
               </div>
             </div>
             <div class="add-special-area">
-              <label for="detal_edit_official" class="add-special-header add-official-header">
+              <label for="detail_edit_official" class="add-special-header add-official-header">
                 公式
               </label>
-              <input type="checkbox" id="detal_edit_official" v-model="editDVD.official" class="add-special-input add-special" checked>
+              <input type="checkbox" id="detail_edit_official" v-model="editDVD.official" class="add-special-input add-special" checked>
             </div>
 
             <div class="add-special-area">
-              <div for="detal_edit_special" class="add-special-header">
+              <label for="detail_edit_special" class="add-special-header">
                 特典
-              </div>
-              <input type="checkbox" id="detal_edit_special" v-model="editDVD.special" class="add-special-input add-special">
+              </label>
+              <input type="checkbox" id="detail_edit_special" v-model="editDVD.special" class="add-special-input add-special">
             </div>
 
             <div class="add-special-area">
@@ -851,6 +872,13 @@
                     ゲキ×シネ
                   </div>
                   <input type="text" v-model="editDVD.url_movie" class="add-special-input add-special-input-text add-url-movie">
+                </div>
+
+                <div class="add-url-DVD-movie-block add-url-movie-area">
+                  <div class="add-url-DVD-movie-header add-url-movie-header">
+                    映像
+                  </div>
+                  <input type="text" v-model="editDVD.url_youtube" class="add-special-input add-special-input-text add-url-movie">
                 </div>
               </div>
             </div>
@@ -937,6 +965,7 @@ export default {
         costumers: [],
         lyricist: '',
         choreo: '',
+        director: '',
         playerList : [],
         groups : [],
         roleImpressionList: [],
@@ -949,6 +978,7 @@ export default {
         special: false,
         url_DVD: '',
         url_movie: '',
+        url_youtube: '',
         category: 1
       },
       playersAll: null,
@@ -1105,6 +1135,7 @@ export default {
       this.editDVD.impression = this.originalDVD.impression ? this.originalDVD.impression : '';
       this.editDVD.story = this.originalDVD.story ? this.originalDVD.story : '';
       this.editDVD.author = this.originalDVD.author ? this.originalDVD.author : '';
+      this.editDVD.director = this.originalDVD.director ? this.originalDVD.director : '';
       this.editDVD.costumers = this.originalDVD.costumers ? this.originalDVD.costumers : null;
       this.editDVD.costumers.sort((a, b) => a.order - b.order);
       this.editDVD.lyricist = this.originalDVD.lyricist ? this.originalDVD.lyricist : '';
@@ -1197,6 +1228,7 @@ export default {
       this.editDVD.special = this.originalDVD.special ? true : false;
       this.editDVD.url_DVD = this.originalDVD.url_DVD ? this.originalDVD.url_DVD : '';
       this.editDVD.url_movie = this.originalDVD.url_movie ? this.originalDVD.url_movie : '';
+      this.editDVD.url_youtube = this.originalDVD.url_youtube ? this.originalDVD.url_youtube : '';
       this.editDVD.category = this.originalDVD.category;
 
       this.originalEditDVD = JSON.parse(JSON.stringify(this.editDVD));
@@ -1486,9 +1518,9 @@ export default {
       }
       
       if(this.originalEditDVD.title !== this.editDVD.title || this.originalEditDVD.duration_from !== this.editDVD.duration_from || this.originalEditDVD.duration_to !== this.editDVD.duration_to
-         || this.originalEditDVD.story !== this.editDVD.story || this.originalEditDVD.impression !== this.editDVD.impression || this.originalEditDVD.author !== this.editDVD.author || this.originalEditDVD.lyricist !== this.editDVD.lyricist || this.originalEditDVD.choreo !== this.editDVD.choreo
+         || this.originalEditDVD.story !== this.editDVD.story || this.originalEditDVD.impression !== this.editDVD.impression || this.originalEditDVD.author !== this.editDVD.author || this.originalEditDVD.lyricist !== this.editDVD.lyricist || this.originalEditDVD.choreo !== this.editDVD.choreo || this.originalEditDVD.director !== this.editDVD.director
          || this.originalEditDVD.format !== this.editDVD.format || this.originalEditDVD.official !== this.originalEditDVD.official
-         || this.originalEditDVD.special !== this.originalEditDVD.special || this.originalEditDVD.url_DVD !== this.editDVD.url_DVD || this.originalEditDVD.url_movie !== this.editDVD.url_movie || this.originalEditDVD.category !== this.editDVD.category
+         || this.originalEditDVD.special !== this.originalEditDVD.special || this.originalEditDVD.url_DVD !== this.editDVD.url_DVD || this.originalEditDVD.url_movie !== this.editDVD.url_movie || this.originalEditDVD.url_youtube !== this.editDVD.url_youtube || this.originalEditDVD.category !== this.editDVD.category
       ) {
         flag = 1;
       }
@@ -1776,6 +1808,7 @@ export default {
       count = 0;
       formData.append('lyricist', this.editDVD.lyricist ? this.editDVD.lyricist.replace(/\s+/g,'') : '');
       formData.append('choreo', this.editDVD.choreo ? this.editDVD.choreo.replace(/\s+/g,'') : '');
+      formData.append('director', this.editDVD.director ? this.editDVD.director.replace(/\s+/g,'') : '');
       this.editDVD.groups.forEach(group => {
         if(group.name){
           if(group.name.replace(/\s+/g,'')) {
@@ -1832,17 +1865,17 @@ export default {
             if(history.title) {
               if(history.title.replace(/\s+/g, '')) {
                 history_flag = 1;
-              } else if(this.registerForm.historyList.length === 1) {
+              } else if(this.editDVD.histories.length === 1) {
                 history_flag = 1;
               }
-            } else if(this.registerForm.historyList.length === 1) {
+            } else if(this.editDVD.histories.length === 1) {
               history_flag = 1;
             }
 
             if(history_flag) {
               formData.append('history[' + count + '][id]', history.id ? history.id : '');
               formData.append('history[' + count + '][order]', history.order);
-              formData.append('history[' + count + '][title]', history.title.replace(/\s+/g, '') ? history.title : '');
+              formData.append('history[' + count + '][title]', history.title ? history.title.replace(/\s+/g, '') : '');
               formData.append('history[' + count + '][history]', history.history);
               count++;
             }
@@ -1897,6 +1930,7 @@ export default {
       formData.append('special', this.editDVD.special ? 1 : 0);
       formData.append('url_DVD', this.editDVD.url_DVD);
       formData.append('url_movie', this.editDVD.url_movie);
+      formData.append('url_youtube', this.editDVD.url_youtube);
       formData.append('category', this.editDVD.category);
 
       const response = await axios.post('/api/DVD/' + this.DVD.id, formData);
