@@ -102,7 +102,40 @@
             <div class="add-header">
               衣装
             </div>
-            <input type="text" v-model="registerForm.costumer" class="add-author">
+
+            <div class="add-costumers-button-block">
+              <!-- 中身 -->
+              <div class="add-costumers-bodyblock">
+                <draggable v-model="registerForm.costumerList" group="costumerList" item-key="key" tag="section" class="add-costumers-costumerline">
+                  <!-- 1セット -->
+                  <template #item="{element : costumer}">
+                    <div class="add-costumers-bodyline">
+                      <div class="add-costumers-cell add-costumers-body-cell">
+                        <input type="text" class="add-author" v-model="costumer.name">
+                      </div>
+                    </div>
+                  </template>
+                </draggable>
+              </div>
+
+              <!-- フォームボタン -->
+              <div class="add-add-minus-button-area">
+                <div ref="add_minus_button_area_costumers_form" class="add-minus-button-area" style="visibility: hidden">
+                  <button type="button" class="add-add-button" @click="minusCostumerForm">
+                    <div class="add-add-button-icon">
+                      <i class="fa-solid fa-minus"></i>
+                    </div>
+                  </button>
+                </div>
+                <div ref="add_add_button_area_costumers_form" class="add-add-button-area">
+                  <button type="button" class="add-add-button" @click="plusCostumerForm">
+                    <div class="add-add-button-icon">
+                      <i class="fa-solid fa-plus"></i>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- 作詞 -->
@@ -119,6 +152,14 @@
               振付
             </div>
             <input type="text" v-model="registerForm.choreo" class="add-author">
+          </div>
+
+          <!-- ゲキ×シネ監督 -->
+          <div class="add-area add-author-area">
+            <div class="add-header">
+              ゲキ×シネ監督
+            </div>
+            <input type="text" v-model="registerForm.director" class="add-author">
           </div>
           
           <!-- 出演者纏めて入力 -->
@@ -337,11 +378,60 @@
           </div>
 
           <!-- 歴史 -->
-          <div class="add-area add-story-area">
-            <div class="add-header">
+          <div class="add-area add-others-area">
+            <div class="add-header add-header-others">
               歴史
             </div>
-            <textarea v-model="registerForm.history" class="add-story" placeholder="本当は？"></textarea>
+
+            <div class="add-others-button-block">
+              <!-- 表 -->
+              <div class="add-others-box">
+                <!-- ヘッダー -->
+                <div class="add-others-headerline">
+                  <div class="add-others-cell add-others-header-cell add-others-cell-title">
+                    題名
+                  </div>
+                  <div class="add-others-cell add-others-header-cell add-others-cell-impression">
+                    歴史
+                  </div>
+                </div>
+
+                <!-- 中身 -->
+                <div class="add-others-bodyblock">
+                  <draggable v-model="registerForm.historyList" group="historyList" item-key="key" tag="section">
+                    <!-- 1セット -->
+                    <template #item="{element : history}">
+                      <div class="add-others-bodyline">
+                        <div class="add-others-cell add-others-body-cell add-others-cell-title">
+                          <input type="text" class="add-others-input add-others-title" v-model="history.title">
+                        </div>
+                        <div class="add-others-cell add-others-body-cell add-others-cell-impression">
+                          <textarea class="add-others-input add-others-impression" placeholder="本当は？" v-model="history.history"></textarea>
+                        </div>
+                      </div>
+                    </template>
+                  </draggable>
+                </div>
+              </div>
+
+              <!-- フォームボタン -->
+              <div class="add-add-minus-button-area">
+                <div ref="add_minus_button_area_histories_form" class="add-minus-button-area" style="visibility: hidden">
+                  <button type="button" class="add-add-button" @click="minusHistoryForm">
+                    <div class="add-add-button-icon">
+                      <i class="fa-solid fa-minus"></i>
+                    </div>
+                  </button>
+                </div>
+                <div ref="add_add_button_area_histories_form" class="add-add-button-area">
+                  <button type="button" class="add-add-button" @click="plusHistoryForm">
+                    <div class="add-add-button-icon">
+                      <i class="fa-solid fa-plus"></i>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- 歌 -->
@@ -578,13 +668,13 @@
           impression: '',
           story: '',
           author: '',
-          costumer: '',
+          costumerList: [{name: null}],
           lyricist: '',
           choreo: '',
           playerList : [{key: null, order:0, group_key: "", role: null, player: null, member: false}],
           groupList : [{key: null, order: 0, name: null}],
           roleImpressionList: [{order: 0, role_key: "", impression: null, preview: null, photo: null}],
-          history: '',
+          historyList: [{title: null, history: null}],
           songList: [{title: null, impression: null}],
           otherList: [{title: null, impression: null}],
           preview: null,
@@ -889,6 +979,17 @@
         formData.append('story', this.registerForm.story);
         formData.append('author', this.registerForm.author ? this.registerForm.author.replace(/\s+/g,'') : '');
         formData.append('costumer', this.registerForm.costumer ? this.registerForm.costumer.replace(/\s+/g,'') : '');
+        for(let i = 0; i < this.registerForm.costumerList.length; i++) {
+          const costumer = this.registerForm.costumerList[i];
+          if(costumer.name) {
+            if(costumer.name.replace(/\s+/g, '')) {
+              formData.append('costumer[' + count + '][order]', count + 1);
+              formData.append('costumer[' + count + '][name]', costumer.name);
+              count++;
+            }
+          }
+        }
+        count = 0;
         formData.append('lyricist', this.registerForm.lyricist ? this.registerForm.lyricist.replace(/\s+/g,'') : '');
         formData.append('choreo', this.registerForm.choreo ? this.registerForm.choreo.replace(/\s+/g,'') : '');
         for(let i = 0; i < this.registerForm.groupList.length; i++) {
@@ -922,16 +1023,40 @@
         };
         count = 0;
 
-        formData.append('history', this.registerForm.history);
+        for(let i = 0; i < this.registerForm.historyList.length; i++) {
+          const history = this.registerForm.historyList[i];
+          if(history.history) {
+            if(history.history.replace(/\s+/g, '')) {
+              let history_flag = 0;
+              if(history.title) {
+                if(history.title.replace(/\s+/g, '')) {
+                  history_flag = 1;
+                } else if(this.registerForm.historyList.length === 1) {
+                  history_flag = 1;
+                }
+              } else if(this.registerForm.historyList.length === 1) {
+                history_flag = 1;
+              }
+
+              if(history_flag) {
+                formData.append('history[' + count + '][order]', count + 1);
+                formData.append('history[' + count + '][title]', history.title.replace(/\s+/g, '') ? history.title : '');
+                formData.append('history[' + count + '][history]', history.history);
+                count++;
+              }
+            }
+          }
+        }
+        count = 0;
         
         for(let i = 0; i < this.registerForm.songList.length; i++) {
           const song = this.registerForm.songList[i];
 
-          if(song.title && song.impression){
-            if(song.title.replace(/\s+/g,'') && song.impression.replace(/\s+/g,'')) {
+          if(song.title){
+            if(song.title.replace(/\s+/g,'')) {
               formData.append('song[' + count + '][order]', count + 1);
               formData.append('song[' + count + '][title]', song.title);
-              formData.append('song[' + count + '][impression]', song.impression);
+              formData.append('song[' + count + '][impression]', song.impression ? song.impression.replace(/\r+/g, '') : '');
               count++;
             }
           }
@@ -940,16 +1065,30 @@
 
         for(let i = 0; i < this.registerForm.otherList.length; i++) {
           const other = this.registerForm.otherList[i];
+          let other_title_flag = 0;
+          let other_impression_flag = 0;
 
-          if(other.title && other.impression){
-            if(other.title.replace(/\s+/g,'') && other.impression.replace(/\s+/g,'')) {
-              formData.append('other[' + count + '][order]', count + 1);
-              formData.append('other[' + count + '][title]', other.title);
-              formData.append('other[' + count + '][impression]', other.impression);
-              count++;
+          if(other.title) {
+            if(other.title.replace(/\s+/g,'')) {
+              other_title_flag = 1;
             }
           }
+
+          if(other.impression){
+            if(other.impression.replace(/\s+/g,'')) {
+              other_impression_flag = 1;          
+            }
+          }
+
+          if(other_title_flag || other_impression_flag) {
+            formData.append('other[' + count + '][order]', count + 1);
+            formData.append('other[' + count + '][title]', other_title_flag ? other.title : '');
+            formData.append('other[' + count + '][impression]', other_impression_flag ? other.impression : '');
+            count++;
+          }
         };
+        count = 0;
+
         formData.append('photo[]', this.registerForm.photo ? this.registerForm.photo : '');
 
         formData.append('format', this.registerForm.format == 1 ? 1 : 2);
@@ -1060,10 +1199,14 @@
           impression: '',
           story: '',
           author: '',
-          playerList : [{key: this.getUniqueStr(), order: 0, group_key: "", role: null, player: null, member: false}],
+          costumerList: [{name: null}],
+          lyricist: '',
+          choreo: '',
+          director: '',
+          playerList : [{key: this.getUniqueStr(), order: 0, group_key: '', role: null, player: null, member: false}],
           groupList : [{key: this.getUniqueStr(), order: 0, name: null}],
           roleImpressionList: [{order: 0, role_key: "", impression: null, preview: null, photo: null}],
-          history: '',
+          historyList: [{title: null, history: null}],
           songList: [{title: null, impression: null}],
           otherList: [{title: null, impression: null}],
           preview: null,
@@ -1073,8 +1216,7 @@
           special: false,
           url_DVD: '',
           url_movie: '',
-          category: 1,
-          rent: ''
+          category: 1
         };
         this.playersAll = null;
         this.playerFlag = false,
@@ -1106,7 +1248,7 @@
       // フォーム関係
       // 劇場フォーム
       plusLocationForm() {
-        if(this.registerForm.locationList.length < 5) {
+        if(this.registerForm.locationList.length < 10) {
           // 追加
           this.registerForm.locationList.push({
             prefecture: null, theater: null
@@ -1114,7 +1256,7 @@
 
           if(this.registerForm.locationList.length === 2) {
             this.$refs.add_minus_button_area_locations_form.style.visibility = 'visible';
-          } else if (this.registerForm.locationList.length === 5) {
+          } else if (this.registerForm.locationList.length === 10) {
             this.$refs.add_add_button_area_locations_form.style.visibility = 'hidden';
           }
         }
@@ -1126,8 +1268,36 @@
 
           if(this.registerForm.locationList.length === 1){
             this.$refs.add_minus_button_area_locations_form.style.visibility = 'hidden';
-          } else if (this.registerForm.locationList.length === 4) {
+          } else if (this.registerForm.locationList.length === 9) {
             this.$refs.add_add_button_area_locations_form.style.visibility = 'visible';
+          }
+        }
+      },
+
+       // 衣装フォーム
+       plusCostumerForm() {
+        if(this.registerForm.costumerList.length < 5) {
+          // 追加
+          this.registerForm.costumerList.push({
+            name: null
+          });
+
+          if(this.registerForm.costumerList.length === 2) {
+            this.$refs.add_minus_button_area_costumers_form.style.visibility = 'visible';
+          } else if (this.registerForm.costumerList.length === 5) {
+            this.$refs.add_add_button_area_costumers_form.style.visibility = 'hidden';
+          }
+        }
+      },
+      minusCostumerForm() {
+        if(this.registerForm.costumerList.length > 1) {
+          // 削除
+          this.registerForm.costumerList.pop();
+
+          if(this.registerForm.costumerList.length === 1){
+            this.$refs.add_minus_button_area_costumers_form.style.visibility = 'hidden';
+          } else if (this.registerForm.costumerList.length === 4) {
+            this.$refs.add_add_button_area_costumers_form.style.visibility = 'visible';
           }
         }
       },
@@ -1217,7 +1387,7 @@
 
       // 分類フォーム
       plusGroupForm() {
-        if(this.registerForm.groupList.length < 5) {
+        if(this.registerForm.groupList.length < 10) {
           // 追加
           this.registerForm.groupList.push({
             key: this.getUniqueStr(), order: this.registerForm.groupList.length, name: null
@@ -1225,13 +1395,13 @@
 
           if(this.registerForm.groupList.length === 2){
             this.$refs.add_minus_button_area_groups_form.style.visibility = 'visible';
-          } else if(this.registerForm.groupList.length === 5) {
+          } else if(this.registerForm.groupList.length === 10) {
             this.$refs.add_add_button_area_groups_form.style.visibility = 'hidden';
           } 
           
-          if(this.registerForm.groupList.length >= this.registerForm.playerList.length || this.registerForm.groupList.length === 5) {
+          if(this.registerForm.groupList.length >= this.registerForm.playerList.length || this.registerForm.groupList.length === 10) {
             this.$refs.add_add_button_area_groups_form.style.visibility = 'hidden';
-          } else if (this.registerForm.groupList.length < 5 && this.registerForm.groupList.length < this.registerForm.playerList.length) {
+          } else if (this.registerForm.groupList.length < 10 && this.registerForm.groupList.length < this.registerForm.playerList.length) {
             this.$refs.add_add_button_area_groups_form.style.visibility = 'visible';
           }
         }
@@ -1251,13 +1421,13 @@
 
           if(this.registerForm.groupList.length === 1){
             this.$refs.add_minus_button_area_groups_form.style.visibility = 'hidden';
-          } else if(this.registerForm.groupList.length === 4) {
+          } else if(this.registerForm.groupList.length === 9) {
             this.$refs.add_add_button_area_groups_form.style.visibility = 'visible';
           }
           
-          if(this.registerForm.groupList.length >= this.registerForm.playerList.length || this.registerForm.groupList.length === 5) {
+          if(this.registerForm.groupList.length >= this.registerForm.playerList.length || this.registerForm.groupList.length === 10) {
             this.$refs.add_add_button_area_groups_form.style.visibility = 'hidden';
-          } else if (this.registerForm.groupList.length < 5 && this.registerForm.groupList.length < this.registerForm.playerList.length) {
+          } else if (this.registerForm.groupList.length < 10 && this.registerForm.groupList.length < this.registerForm.playerList.length) {
             this.$refs.add_add_button_area_groups_form.style.visibility = 'visible';
           }
         }
@@ -1321,6 +1491,34 @@
         const key = this.registerForm.roleImpressionList[index].role_key;
         const chosePlayer = this.registerForm.playerList.find(player => player.key === key);
         this.registerForm.roleImpressionList[index].order = chosePlayer.order;
+      },
+
+      // 歴史フォーム
+      plusHistoryForm() {
+        if(this.registerForm.historyList.length < 10) {
+          // 追加
+          this.registerForm.historyList.push({
+            title: null, history: null
+          });
+
+          if(this.registerForm.historyList.length === 2) {
+            this.$refs.add_minus_button_area_histories_form.style.visibility = 'visible';
+          } else if (this.registerForm.historyList.length === 10) {
+            this.$refs.add_add_button_area_histories_form.style.visibility = 'hidden';
+          }
+        }
+      },
+      minusHistoryForm() {
+        if(this.registerForm.historyList.length > 1) {
+          // 削除
+          this.registerForm.historyList.pop();
+
+          if(this.registerForm.historyList.length === 1){
+            this.$refs.add_minus_button_area_histories_form.style.visibility = 'hidden';
+          } else if (this.registerForm.historyList.length === 9) {
+            this.$refs.add_add_button_area_histories_form.style.visibility = 'visible';
+          }
+        }
       },
 
       // 歌フォーム

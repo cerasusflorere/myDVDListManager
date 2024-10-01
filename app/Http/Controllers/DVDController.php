@@ -8,6 +8,8 @@ use App\Models\Role;
 use App\Models\Role_group;
 use App\Models\Role_photo;
 use App\Models\Location;
+use App\Models\Costumer;
+use App\Models\History;
 use App\Models\Song;
 use App\Models\Other;
 use App\Models\Photo;
@@ -29,7 +31,7 @@ class DVDController extends BaseController
      */
     public function index()
     {
-        $DVDs = DVD_list::with(['locations','roles','photos','rents'=> function($query) {
+        $DVDs = DVD_list::with(['locations','costumers', 'roles','photos','rents'=> function($query) {
             $query->where('flag', 1);
         }])->orderByRaw('duration_from is null asc')->orderBy('duration_from')->get();
         return $DVDs;
@@ -44,11 +46,23 @@ class DVDController extends BaseController
     public function show($id)
     {
         $DVD = DVD_list::where('id', $id)
-              ->with(['locations', 'roles', 'roles.role_group:id,name', 'roles.role_photos', 'role_groups', 'songs', 'others', 'photos', 'rents'])->first();
+              ->with(['locations', 'costumers', 'roles', 'roles.role_group:id,name', 'roles.role_photos', 'role_groups', 'histories', 'songs', 'others', 'photos', 'rents'])->first();
         
 
         return $DVD ?? abort(404);
     }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function theater()
+    {
+        $locations = Location::groupBy('theater')->get(['theater']);
+        return $locations;
+    }
+    
 
     /**
      * Display a listing of the resource.
@@ -68,7 +82,7 @@ class DVDController extends BaseController
      */
     public function costumer()
     {
-        $costumers = DVD_list::groupBy('costumer')->get(['costumer']);
+        $costumers = Costumer::groupBy('name')->get(['name']);
         return $costumers;
     }
 
@@ -141,13 +155,13 @@ class DVDController extends BaseController
         $impression = !empty($request->impression) ? $request->impression : null;
         $story = !empty($request->story) ? $request->story : null;
         $author = !empty($request->author) ? $request->author : null;
-        $costumer = !empty($request->costumer) ? $request->costumer : null;
+        $costumers = !empty($request->costumer) ? $request->costumer : null;
         $lyricist = !empty($request->lyricist) ? $request->lyricist : null;
         $choreo = !empty($request->choreo) ? $request->choreo : null;
         $director = !empty($request->director) ? $request->director : null;
         $groups = !empty($request->group) ? $request->group : null;
         $roles = !empty($request->role) ? $request->role : null;
-        $history = !empty($request->history) ? $request->history : null;
+        $histories = !empty($request->history) ? $request->history : null;
         $songs = !empty($request->song) ? $request->song : null;
         $others = !empty($request->other) ? $request->other : null;
         $photos = !empty($request->photo) ? $request->photo : null;
@@ -162,10 +176,15 @@ class DVDController extends BaseController
         DB::beginTransaction();
 
         try {
-            $DVD = DVD_list::create(['title' => $request->title, 'kana' => $request->kana, 'duration_from' => $durationFrom, 'duration_to' => $durationTo, 'impression' => $impression, 'story' => $story, 'author' => $author, 'costumer' => $costumer, 'lyricist' => $lyricist, 'choreo' => $choreo, 'direcor' => $director, 'history' => $history, 'format' => $format, 'official' => $official, 'special' => $special, 'url_DVD' => $url_DVD, 'url_movie' => $url_movie, 'category' => $category]);
+            $DVD = DVD_list::create(['title' => $request->title, 'kana' => $request->kana, 'duration_from' => $durationFrom, 'duration_to' => $durationTo, 'impression' => $impression, 'story' => $story, 'author' => $author, 'lyricist' => $lyricist, 'choreo' => $choreo, 'direcor' => $director, 'format' => $format, 'official' => $official, 'special' => $special, 'url_DVD' => $url_DVD, 'url_movie' => $url_movie, 'category' => $category]);
             if($locations){
                 foreach($locations as $location) {
                     Location::create(['DVD_id' => $DVD->id, 'order' => (int)$location['order'], 'prefecture' => (int)$location['prefecture'], 'theater' => !empty($location['theater']) ? $location['theater'] : null]);
+                }
+            }
+            if($costumers){
+                foreach($costumers as $costumer) {
+                    Costumer::create(['DVD_id' => $DVD->id, 'order' => (int)$costumer['order'], 'name' => $costumer['name']]);
                 }
             }
             $groups_id = array();
@@ -197,14 +216,19 @@ class DVDController extends BaseController
                     }
                 }
             }
+            if($histories) {
+                foreach($histories as $history) {
+                    History::create(['DVD_id' => $DVD->id, 'order' => (int)$history['order'], 'title' => !empty($history['title']) ? $history['title'] : null, 'impression' => $history['history']]);
+                }
+            }
             if($songs) {
                 foreach($songs as $song) {
-                    Song::create(['DVD_id' => $DVD->id, 'order' => (int)$song['order'], 'title' => $song['title'], 'impression' => $song['impression']]);
+                    Song::create(['DVD_id' => $DVD->id, 'order' => (int)$song['order'], 'title' => $song['title'], 'impression' => !empty($song['impression']) ? $song['impression'] : null]);
                 }
             }
             if($others){
                 foreach($others as $other) {
-                    $data_other = Other:: create(['DVD_id' => $DVD->id, 'order' => (int)$other['order'], 'title' => $other['title'], 'impression' => $other['impression']]);
+                    $data_other = Other:: create(['DVD_id' => $DVD->id, 'order' => (int)$other['order'], 'title' => !empty($other['title']) ? $other['title'] : null, 'impression' => !empty($other['impression']) ? $other['impression'] : null ]);
                 }
             }
             if($photos){
@@ -255,13 +279,13 @@ class DVDController extends BaseController
         $impression = !empty($request->impression) ? $request->impression : null;
         $story = !empty($request->story) ? $request->story : null;
         $author = !empty($request->author) ? $request->author : null;
-        $costumer = !empty($request->costumer) ? $request->costumer : null;
+        $costumers = !empty($request->costumer) ? $request->costumer : null;
         $lyricist = !empty($request->lyricist) ? $request->lyricist : null;
         $choreo = !empty($request->choreo) ? $request->choreo : null;
         $director = !empty($request->director) ? $request->director : null;
         $groups = !empty($request->group) ? $request->group : null;
         $roles = !empty($request->role) ? $request->role : null;
-        $history = !empty($request->history) ? $request->history : null;
+        $histories = !empty($request->history) ? $request->history : null;
         $songs = !empty($request->song) ? $request->song : null;
         $others = !empty($request->other) ? $request->other : null;
         $photos = !empty($request->photo) ? $request->photo : null;
@@ -277,7 +301,7 @@ class DVDController extends BaseController
         DB::beginTransaction();
 
         try {
-            $DVD = DVD_list::where('id',$id)->update(['title' => $request->title, 'kana' => $request->kana, 'duration_from' => $durationFrom, 'duration_to' => $durationTo, 'impression' => $impression, 'story' => $story, 'author' => $author, 'costumer' => $costumer, 'lyricist' => $lyricist, 'choreo' => $choreo, 'director' => $director, 'history' => $history, 'format' => $format, 'official' => $official, 'special' => $special, 'url_DVD' => $url_DVD, 'url_movie' => $url_movie, 'category' => $category]);
+            $DVD = DVD_list::where('id',$id)->update(['title' => $request->title, 'kana' => $request->kana, 'duration_from' => $durationFrom, 'duration_to' => $durationTo, 'impression' => $impression, 'story' => $story, 'author' => $author, 'lyricist' => $lyricist, 'choreo' => $choreo, 'director' => $director, 'format' => $format, 'official' => $official, 'special' => $special, 'url_DVD' => $url_DVD, 'url_movie' => $url_movie, 'category' => $category]);
             
             $delete_locations = Location::where('DVD_id', $id)->get()->pluck('id')->toArray();
             $not_delete_locations = array();
@@ -294,7 +318,25 @@ class DVDController extends BaseController
             $delete_locations = array_diff($delete_locations,$not_delete_locations);
             $delete_locations = array_values($delete_locations);
             if(!empty($delete_locations)) {
-                Location::where('id', $delete_locations)->delete();
+                Location::destroy($delete_locations);
+            }
+
+            $delete_costumers = Costumer::where('DVD_id', $id)->get()->pluck('id')->toArray();
+            $not_delete_costumers = array();
+            if($costumers){
+                foreach($costumers as $costumer) {
+                    if(!empty($costumer['id'])) {
+                        Costumer::find($costumer['id'])->fill(['order' => (int)$costumer['order'], 'name' => $costumer['name']])->save();
+                        $not_delete_costumers[] = $costumer['id'];
+                    } else {
+                        Costumer::create(['DVD_id' => $id, 'order' => (int)$costumer['order'], 'name' => $costumer['name']]);
+                    }                    
+                }
+            }
+            $delete_costumers = array_diff($delete_costumers,$not_delete_costumers);
+            $delete_costumers = array_values($delete_costumers);
+            if(!empty($delete_costumers)) {
+                Costumer::destroy($delete_costumers);
             }
 
             $groups_id = array();
@@ -324,10 +366,10 @@ class DVDController extends BaseController
                         $group_id = $groups_id[$group_id_index]['group_id'];
                     }
                     if($role['id']) {
-                        $data_role = Role::find($role['id'])->fill(['order' => $role['order'], 'role_group_id' => $group_id, 'role' => $role['role'], 'player' => $role['player'], 'member' => $role['member'], 'impression' => $role['impression']])->save();
+                        $data_role = Role::find($role['id'])->fill(['order' => $role['order'], 'role_group_id' => $group_id, 'role' => $role['role'], 'player' => $role['player'], 'member' => $role['member'], 'impression' => !empty($role['impression']) ? $role['impression'] : null ])->save();
                         $not_delete_roles[] = $role['id'];
                     } else {
-                        $data_role = Role::create(['DVD_id' => $id, 'order' => $role['order'], 'role_group_id' => $group_id, 'role' => $role['role'], 'player' => $role['player'], 'member' => $role['member'], 'impression' => $role['impression']]);
+                        $data_role = Role::create(['DVD_id' => $id, 'order' => $role['order'], 'role_group_id' => $group_id, 'role' => $role['role'], 'player' => $role['player'], 'member' => $role['member'], 'impression' => !empty($role['impression']) ? $role['impression'] : null ]);
                         $role['id'] = $data_role->id;
                     }
 
@@ -370,17 +412,35 @@ class DVDController extends BaseController
             $delete_role_photos = array_diff($delete_role_photos, $not_delete_role_photos);
             $delete_role_photos = array_values($delete_role_photos);
             if(!empty($delete_role_photos)){
-                Role_photo::where('id', $delete_role_photos)->delete();
+                Role_photo::destroy($delete_role_photos);
             }
             $delete_roles = array_diff($delete_roles, $not_delete_roles);
             $delete_roles = array_values($delete_roles);
             if(!empty($delete_roles)) {
-                Role::where('id', $delete_roles)->delete();
+                Role::destroy($delete_roles);
             }
             $delete_groups = array_diff($delete_groups, $not_delete_groups);
             $delete_groups = array_values($delete_groups);
             if(!empty($delete_groups)) {
-                Role_group::where('id', $delete_groups)->delete();
+                Role_group::destroy($delete_groups);
+            }
+
+            $delete_histories = History::where('DVD_id', $id)->get()->pluck('id')->toArray();
+            $not_delete_histories = array();
+            if($histories){
+                foreach($histories as $history) {
+                    if($history['id']) {
+                        History::find($history['id'])->fill(['order' => $history['order'], 'title' => !empty($history['title']) ? $history['title'] : null, 'history' => $history['history']])->save();
+                        $not_delete_histories[] = $history['id'];
+                    } else {
+                        History::create(['DVD_id' => $id, 'order' => $history['order'], 'title' => !empty($history['title']) ? $history['title'] : null, 'history' => $history['history']]);
+                    } 
+                }
+            }
+            $delete_histories = array_diff($delete_histories, $not_delete_histories);
+            $delete_histories = array_values($delete_histories);
+            if(!empty($delete_histories)) {
+                History::destroy($delete_histories);
             }
 
             $delete_songs = Song::where('DVD_id', $id)->get()->pluck('id')->toArray();
@@ -398,7 +458,7 @@ class DVDController extends BaseController
             $delete_songs = array_diff($delete_songs, $not_delete_songs);
             $delete_songs = array_values($delete_songs);
             if(!empty($delete_songs)) {
-                Song::where('id', $delete_songs)->delete();
+                Song::destroy($delete_songs);
             }
 
             $delete_others = Other::where('DVD_id', $id)->get()->pluck('id')->toArray();
@@ -406,17 +466,17 @@ class DVDController extends BaseController
             if($others){
                 foreach($others as $other) {
                     if($other['id']) {
-                        Other::find($other['id'])->fill(['order' => $other['order'], 'title' => $other['title'], 'impression' => $other['impression']])->save();
+                        Other::find($other['id'])->fill(['order' => $other['order'], 'title' => !empty($other['title']) ? $other['title'] : null, 'impression' => !empty($other['impression']) ? $other['impression'] : null])->save();
                         $not_delete_others[] = $other['id'];
                     } else {
-                        Other::create(['DVD_id' => $id, 'order' => $other['order'], 'title' => $other['title'], 'impression' => $other['impression']]);
+                        Other::create(['DVD_id' => $id, 'order' => $other['order'], 'title' => !empty($other['title']) ? $other['title'] : null, 'impression' => !empty($other['impression']) ? $other['impression'] : null]);
                     } 
                 }
             }
             $delete_others = array_diff($delete_others, $not_delete_others);
             $delete_others = array_values($delete_others);
             if(!empty($delete_others)) {
-                Other::where('id', $delete_others)->delete();
+                Other::destroy($delete_others);
             }
 
             $delete_photos = Photo::where('DVD_id', $id)->get()->pluck('id')->toArray();
@@ -460,7 +520,7 @@ class DVDController extends BaseController
             $delete_photos = array_diff($delete_photos, $not_delete_photos);
             $delete_photos = array_values($delete_photos);
             if(!empty($delete_photos)) { 
-                Photo::where('id', $delete_photos)->delete();
+                Photo::destroy($delete_photos);
             }
 
             DB::commit();

@@ -45,9 +45,9 @@
             </RouterLink>
             <!-- カテゴリー -->
             <div class="list-list-table-cell list-list-table-bodycell list-list-table-category-cell">
-              <span v-if="DVD.category === 1" class="list-list-table-category"><i class="fas fa-theater-masks"></i></span>
-              <span v-if="DVD.category === 2" class="list-list-table-category"><i class="fas fa-smile"></i></span>
-              <span v-if="DVD.category === 2" class="list-list-table-category"><i class="fas fa-guitar"></i></span>
+              <span v-if="DVD.category === 1" class="list-list-table-category"><img :src="'kabuki.png'" alt="いのうえ歌舞伎" class="list-kabuki"></span>
+              <span v-if="DVD.category === 2" class="list-list-table-category"><i class="far fa-grin-squint"></i></span>
+              <span v-if="DVD.category === 3" class="list-list-table-category"><i class="fas fa-guitar"></i></span>
             </div>
             <!-- 公演期間 -->
             <div class="list-list-table-cell list-list-table-bodycell list-list-table-duration-cell list-list-table-small-font">
@@ -106,9 +106,9 @@
                 {{ DVD.title }}
               </RouterLink>
               <div class="list-grid-category">
-                <span v-if="DVD.category === 1" class="list-gred-category"><i class="fas fa-theater-masks"></i></span>
-                <span v-if="DVD.category === 2" class="list-gred-category"><i class="fas fa-smile"></i></span>
-                <span v-if="DVD.category === 2" class="list-gred-category"><i class="fas fa-guitar"></i></span>
+                <span v-if="DVD.category === 1" class="list-gred-category"><img :src="'kabuki.png'" alt="いのうえ歌舞伎" class="list-kabuki"></span>
+                <span v-if="DVD.category === 2" class="list-gred-category"><i class="far fa-grin-squint"></i></span>
+                <span v-if="DVD.category === 3" class="list-gred-category"><i class="fas fa-guitar"></i></span>
               </div>
               <!-- 公演期間 -->
               <div v-if="DVD.duration_from" class="list-grid-duration">
@@ -273,6 +273,7 @@ import { fa } from 'vuetify/locale';
             title: null,
             category: null,
             duration: null,
+            theater: null,
             author: null,
             costumer: null,
             lyricist: null,
@@ -287,7 +288,7 @@ import { fa } from 'vuetify/locale';
           return a.duration_from > b.duration_from ? 1 : -1;
         });
 
-        this.showDVD = array;
+        this.showDVDs = array;
       },
 
       sortTitle(array){
@@ -379,15 +380,16 @@ import { fa } from 'vuetify/locale';
       },
       // 検索カスタムのモーダル非表示
       // 検索/並び替え
-      async closeModal_searchDVD(sort, mode, rent, format, title, category, duration, author, costumer, lyricist, choreo, direcotr, players, roles) {
+      async closeModal_searchDVD(sort, mode, rent, format, title, category, duration, theater, author, costumer, lyricist, choreo, direcotr, players, roles) {
         this.showContent_search = false;
         this.custom.sort = sort;
-        if(rent || format || title || category || author || costumer || lyricist || choreo || direcotr || players || roles) {
+        if(rent || format || title || category || theater || author || costumer || lyricist || choreo || direcotr || players || roles) {
           let arrayFromRent = JSON.parse(JSON.stringify(this.DVDs));
           let arrayFromFormat = JSON.parse(JSON.stringify(this.DVDs));
           let arrayFromTitle = new Array();
           let arrayFromCategory = new Array();
           let arrayFromDuration = new Array();
+          let arrayFromTheater = new Array();
           let arrayFromAuthor = new Array();
           let arrayFromCostumer = new Array();
           let arrayFromLyricist = new Array();
@@ -400,6 +402,7 @@ import { fa } from 'vuetify/locale';
           let titleFlag = 0;
           let categoryFlag = 0;
           let durationFlag = 0;
+          let theaterFlag = 0;
           let authorFlag = 0;
           let costumerFlag = 0;
           let lyricistFlag = 0;
@@ -463,6 +466,14 @@ import { fa } from 'vuetify/locale';
             arrayFromDuration = JSON.parse(JSON.stringify(this.DVDs));
           }
 
+          if(theater) {
+            this.custom.theater = theater;
+            arrayFromTheater = DVDs.filter(DVD => DVD.locations ? DVD.locations.some(location => location.theater.includes(theater)) : null);
+            if(!arrayFromTheater.length) {
+              theaterFlag = 1;
+            }
+          }
+
           if(author) {
             this.custom.author = author;
             arrayFromAuthor = DVDs.filter(DVD => DVD.author ? DVD.author.indexOf(author) > -1 : null);
@@ -473,7 +484,7 @@ import { fa } from 'vuetify/locale';
 
           if(costumer) {
             this.custom.costumer = costumer;
-            arrayFromCostumer = DVDs.filter(DVD => DVD.costumer ? DVD.costumer.indexOf(costumer) > -1 : null);
+            arrayFromCostumer = DVDs.filter(DVD => DVD.costumers ? DVD.costumers.some(setCostumer => setCostumer.name.includes(costumer)) : null);
             if(!arrayFromCostumer.length) {
               costumerFlag = 1;
             }
@@ -521,7 +532,7 @@ import { fa } from 'vuetify/locale';
 
           if(mode) {
             // and
-            if(rentFlag || formatFlag || titleFlag || durationFlag || categoryFlag || authorFlag || costumerFlag || lyricistFlag || choreoFlag || playersFlag || direcotrFlag) {
+            if(rentFlag || formatFlag || titleFlag || durationFlag || categoryFlag || theaterFlag || authorFlag || costumerFlag || lyricistFlag || choreoFlag || playersFlag || direcotrFlag) {
               // 一つでも該当DVDがない条件があった
               this.showDVDs = [];
             } else {
@@ -529,22 +540,34 @@ import { fa } from 'vuetify/locale';
               let array2 = this.extraAndArray(array1, arrayFromTitle);
               let array3 = this.extraAndArray(array2, arrayFromDuration);
               let array4 = this.extraAndArray(array3, arrayFromCategory);
-              let array5 = this.extraAndArray(array4, arrayFromAuthor);
-              let array6 = this.extraAndArray(array5, arrayFromCostumer);
-              let array7 = this.extraAndArray(array6, arrayFromLyricist);
-              let array8 = this.extraAndArray(array7, arrayFromChoreo);
-              let array9 = this.extraAndArray(array8, arrayFromPlayers);
-              let array10 = this.extraAndArray(array9, arrayFromDirector);
+              let array5 = this.extraAndArray(array4, arrayFromTheater);
+              let array6 = this.extraAndArray(array5, arrayFromAuthor);
+              let array7 = this.extraAndArray(array6, arrayFromCostumer);
+              let array8 = this.extraAndArray(array7, arrayFromLyricist);
+              let array9 = this.extraAndArray(array8, arrayFromChoreo);
+              let array10 = this.extraAndArray(array9, arrayFromPlayers);
+              let array11 = this.extraAndArray(array10, arrayFromDirector);
 
-              this.showDVDs = array10;
+              this.showDVDs = array11;
             }            
           } else {
             // or
-            let array = [...new Set(arrayFromTitle.concat(arrayFromCategory, arrayFromAuthor, arrayFromCostumer, arrayFromCharacters, arrayFromChoreo, arrayFromDirector, arrayFromPlayers, arrayFromCharacters))];
+            let array = [...new Set(arrayFromTitle.concat(arrayFromCategory, arrayFromTheater, arrayFromAuthor, arrayFromCostumer, arrayFromCharacters, arrayFromChoreo, arrayFromDirector, arrayFromPlayers, arrayFromCharacters))];
             
-            let array2 = this.extraAndArray(array, arrayFromRent);
-            let array3 = this.extraAndArray(array2, arrayFromFormat);
-            let array4 = this.extraAndArray(array3, arrayFromDuration);
+            let array2 = [];
+            let array3 = [];
+            let array4 = [];
+            if(array.length) {
+              array2 = this.extraAndArray(array, arrayFromRent);
+            }
+            
+            if(array2.length) {
+              array3 = this.extraAndArray(array2, arrayFromFormat);
+            }
+
+            if(array3.length) {
+              array4 = this.extraAndArray(array3, arrayFromDuration);
+            }            
 
             this.showDVDs = array4;
           }

@@ -1,5 +1,5 @@
 <template>
-    <div :class="[overlay_class === 1 ? 'overlay' : 'overlay overlay-custom']" @click.self="$emit('close')">
+    <div class='overlay overlay-custom' @click.self="$emit('close')">
       <div ref="content_search" class="search-area">
         <div class="search-button-area">
           <!-- 閉じるボタン -->
@@ -106,6 +106,18 @@
               </div>
 
               <div class="search-refine-choice-area">
+                <!-- 劇場 -->
+                <div class="search-refine-author-area">
+                  <div class="search-header">
+                    劇場
+                  </div>
+                  <select class="search-refine-author" v-model="searchContentDVD.refine.theater">
+                    <option v-for="(theater) in optionTheaters" :value="theater">
+                      {{ theater }}
+                    </option>
+                  </select>
+                </div>
+
                 <!-- 戯曲 -->
                 <div class="search-refine-author-area">
                   <div class="search-header">
@@ -220,11 +232,11 @@
       },
       data() {
         return{
-          // overlayのクラス
-          overlay_class: 1,
           // 検索
           yearList: [],
           monthList: [],
+          // 劇場リスト
+          optionTheaters: [],
           // 戯曲家リスト
           optionAuthors: [],
           // 衣装リスト
@@ -255,6 +267,7 @@
                 month: null,
                 no: true
               },
+              theater: null,
               author: null,
               costumer: null,
               lyricist: null,
@@ -279,22 +292,12 @@
         $route: {
           async handler () {
             await this.set();
+            await this.fetchTheaters();
             await this.fetchAuthors();
             await this.fetchCostumers();
             await this.fetchLyricists();
             await this.fetchChoreos();
             await this.fetchDirectors();
-
-            // 調整
-            this.$nextTick(() => {
-              const content_dom = this.$refs.content_search;
-              const content_rect = content_dom.getBoundingClientRect(); // 要素の座標と幅と高さを取得
-              if(content_rect.top < 0){
-                this.overlay_class = 0;
-              }else{
-                this.overlay_class = 1;
-              }
-            });
           },
           immediate: true
         }
@@ -310,11 +313,28 @@
           }
         },
 
+        // 劇場を取得
+        async fetchTheaters() {
+          const response = await axios.get('/api/theater');
+
+          if(response.status !== 200) {
+            this.$store.commit('error/setCode', response.status);
+            return false;
+          }
+
+          this.optionTheaters.push('尼崎ピッコロシアター中ホール');
+          response.data.forEach(data => {
+            if(data.theater && data.theater !== '尼崎ピッコロシアター中ホール') {
+              this.optionTheaters.push(data.theater);
+            }
+          });
+        },
+
         // 戯曲を取得
         async fetchAuthors () {
           const response = await axios.get('/api/author');
   
-          if (response.status !== 200) {
+          if(response.status !== 200) {
             this.$store.commit('error/setCode', response.status);
             return false;
           }
@@ -331,15 +351,15 @@
         async fetchCostumers () {
           const response = await axios.get('/api/costumer');
 
-          if (response.status !== 200) {
+          if(response.status !== 200) {
             this.$store.commit('error/setCode', response.status);
             return false;
           }
 
           this.optionCostumers.push('竹田団吾');
           response.data.forEach(data => {
-            if(data.costumer && data.costumer != '竹田団吾') {
-              this.optionCostumers.push(data.costumer);
+            if(data.name && data.name != '竹田団吾') {
+              this.optionCostumers.push(data.name);
             }
           });
         },
@@ -440,7 +460,7 @@
             }
           }
 
-          this.$emit('close', this.searchContentDVD.sort, this.searchContentDVD.refine.mode, this.searchContentDVD.refine.rent, this.searchContentDVD.refine.format, this.searchContentDVD.refine.title, this.searchContentDVD.refine.category, duration, this.searchContentDVD.refine.author, this.searchContentDVD.refine.costumer, this.searchContentDVD.refine.lyricist, this.searchContentDVD.refine.choreo, this.searchContentDVD.refine.director, this.searchContentDVD.refine.players, this.searchContentDVD.refine.roles);
+          this.$emit('close', this.searchContentDVD.sort, this.searchContentDVD.refine.mode, this.searchContentDVD.refine.rent, this.searchContentDVD.refine.format, this.searchContentDVD.refine.title, this.searchContentDVD.refine.category, duration, this.searchContentDVD.refine.theater, this.searchContentDVD.refine.author, this.searchContentDVD.refine.costumer, this.searchContentDVD.refine.lyricist, this.searchContentDVD.refine.choreo, this.searchContentDVD.refine.director, this.searchContentDVD.refine.players, this.searchContentDVD.refine.roles);
         },
 
         // リセット
@@ -462,6 +482,7 @@
                 month: null,
                 no: true
               },
+              theater: null,
               author: null,
               costumer: null,
               lyricist: null,

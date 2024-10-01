@@ -13,15 +13,15 @@
         
         /** 取得時にJSONに含める属性 */
         protected $visible = [
-            'id', 'title', 'kana', 'duration_from', 'duration_to', 'impression', 'story', 'author', 'costumer', 'lyricist', 'choreo', 'director', 
-            'history', 'format', 'official', 'special', 'url_DVD', 'url_movie', 'category', 'created_at', 'updated_at',
-            'locations', 'roles', 'role_groups', 'songs', 'others', 'photos', 'rents'
+            'id', 'title', 'kana', 'duration_from', 'duration_to', 'impression', 'story', 'author', 'lyricist', 'choreo', 'director', 
+            'format', 'official', 'special', 'url_DVD', 'url_movie', 'category', 'created_at', 'updated_at',
+            'locations', 'costumers', 'roles', 'role_groups', 'histories', 'songs', 'others', 'photos', 'rents'
         ];
     
         /** 登録時にJSONに含める属性 */
         protected $fillable = [
-            'id', 'title', 'kana', 'duration_from', 'duration_to', 'impression', 'story', 'author', 'costumer', 'lyricist', 'choreo', 'director', 
-            'history', 'format', 'official', 'special', 'url_DVD', 'url_movie', 'category', 'rent'
+            'id', 'title', 'kana', 'duration_from', 'duration_to', 'impression', 'story', 'author', 'lyricist', 'choreo', 'director', 
+            'format', 'official', 'special', 'url_DVD', 'url_movie', 'category', 'rent'
         ];
 
         public function getCreatedAtAttribute()
@@ -42,6 +42,15 @@
         {
             return $this->hasMany('App\Models\Location', 'DVD_id');
         }
+        
+        /**
+         * リレーションシップ - costumersテーブル
+         * @return \Illuminate\Database\Eloquent\Relations\HasMany
+         */
+        public function costumers()
+        {
+            return $this->hasMany('App\Models\Costumer', 'DVD_id');
+        }
 
         /**
          * リレーションシップ - rolesテーブル
@@ -59,6 +68,15 @@
         public function role_groups()
         {
             return $this->hasMany('App\Models\Role_group', 'DVD_id');
+        }
+
+        /**
+         * リレーションシップ - historiesテーブル
+         * @return \Illuminate\Database\Eloquent\Relations\HasMany
+         */
+        public function histories()
+        {
+            return $this->hasMany('App\Models\History', 'DVD_id');
         }
 
         /**
