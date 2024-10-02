@@ -508,7 +508,7 @@ import { fa } from 'vuetify/locale';
 
           if(direcotr) {
             this.custom.direcotr = direcotr;
-            arrayFromDirector = DVDs.filter(DVD => DVD.direcotr ? DVD.direcotr.indexOf(direcotr) > -1 : null);
+            arrayFromDirector = DVDs.filter(DVD => DVD.director ? DVD.director.indexOf(direcotr) > -1 : null);
             if(!arrayFromDirector.length) {
               direcotrFlag = 1;
             }

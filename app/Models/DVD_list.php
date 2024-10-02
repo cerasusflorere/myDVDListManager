@@ -14,14 +14,14 @@
         /** 取得時にJSONに含める属性 */
         protected $visible = [
             'id', 'title', 'kana', 'duration_from', 'duration_to', 'impression', 'story', 'author', 'lyricist', 'choreo', 'director', 
-            'format', 'official', 'special', 'url_DVD', 'url_movie', 'category', 'created_at', 'updated_at',
+            'format', 'official', 'special', 'url_DVD', 'url_movie', 'url_youtube', 'category', 'created_at', 'updated_at',
             'locations', 'costumers', 'roles', 'role_groups', 'histories', 'songs', 'others', 'photos', 'rents'
         ];
     
         /** 登録時にJSONに含める属性 */
         protected $fillable = [
             'id', 'title', 'kana', 'duration_from', 'duration_to', 'impression', 'story', 'author', 'lyricist', 'choreo', 'director', 
-            'format', 'official', 'special', 'url_DVD', 'url_movie', 'category', 'rent'
+            'format', 'official', 'special', 'url_DVD', 'url_movie', 'url_youtube', 'category', 'rent'
         ];
 
         public function getCreatedAtAttribute()

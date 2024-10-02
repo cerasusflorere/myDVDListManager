@@ -129,7 +129,9 @@
                     </option>
                   </select>
                 </div>
+              </div>
 
+              <div class="search-refine-choice-area">
                 <!-- 衣装 -->
                 <div class="search-refine-author-area">
                   <div class="search-header">
@@ -141,9 +143,7 @@
                     </option>
                   </select>
                 </div>
-              </div>
-
-              <div class="search-refine-choice-area">
+                
                 <!-- 作詞 -->
                 <div class="search-refine-author-area">
                   <div class="search-header">
@@ -155,7 +155,9 @@
                     </option>
                   </select>
                 </div>
+              </div>
 
+              <div class="search-refine-choice-area">
                 <!-- 振付 -->
                 <div class="search-refine-author-area">
                   <div class="search-header">
@@ -167,9 +169,7 @@
                     </option>
                   </select>
                 </div>
-              </div>
-
-              <div class="search-refine-choice-area">
+                
                 <!-- ゲキ×シネ監督 -->
                 <div class="search-refine-author-area">
                   <div class="search-header">

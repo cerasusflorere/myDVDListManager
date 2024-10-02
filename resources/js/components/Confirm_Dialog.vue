@@ -1,5 +1,5 @@
 <template>
-  <div class="overlay" @click.self="$emit('Cancel')">
+  <div class="overlay overlay-message" @click.self="$emit('Cancel')">
     <div class="dialog"  ref="content_confirm_dialog">
       <div class="message-button-area">
         <button type="button" @click="$emit('Cancel')" class="message-button"><i class="fas fa-times fa-fw"></i></button>

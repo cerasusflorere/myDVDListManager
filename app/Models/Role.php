@@ -59,4 +59,13 @@ class Role extends Model
     {
         return $this->hasMany('App\Models\Role_photo');
     }
+
+    /**
+     * リレーションシップ - singerテーブル
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function singer()
+    {
+        return $this->hasMany('App\Models\Singer');
+    }
 }
