@@ -1645,6 +1645,21 @@
   gap: 0.2rem;
   white-space: pre-wrap;
 }
+.detail-show-singer-common {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;  
+  white-space: nowrap;
+}
+.detail-show-singer-2 {
+  gap: 0.2rem;
+}
+.detail-show-singer-5 {
+  gap: 0.5rem;
+}
+.detail-show-singer-small {
+  font-size: 0.8rem;
+}
 .detail-show-other-area {
   display: flex;
   flex-direction: row;

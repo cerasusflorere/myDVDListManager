@@ -202,7 +202,35 @@
         <div class="detail-show-header">歌</div>
         <div class="detail-show-others-block">
           <div v-for="song in DVD.songs" class="detail-show-song-area">
-            <div class="detail-show-song-title">【{{ song.title }}】</div>
+            <div class="detail-show-singer-common detail-show-singer-2">
+              <div class="detail-show-singer-common">
+                【
+              </div>
+              <div class="detail-show-singer-common detail-show-singer-5">
+                <div class="detail-show-singer-common detail-show-singer-2">
+                  {{ song.title }}
+                  <div v-if="song.singers.length" class="detail-show-singer-common">/</div>
+                </div>
+
+                <div v-if="song.singers.length" class="detail-show-singer-common">
+                  <div v-for="(singer, index) in song.singers" class="detail-show-singer-common">
+                    <div v-if="singer.role_id" class="detail-show-singer-common detail-show-singer-2">
+                      {{ singer.role.role }}
+                      <div class="detail-show-singer-small">
+                        (by {{ singer.role.player }})
+                      </div>
+                    </div>
+                    <div v-else-if="singer.role_group_id">
+                      {{ singer.role_group.name }}
+                    </div>
+                    <div v-else>
+                      {{ singer.name }}
+                    </div>
+
+                    <div v-if="index !== song.singers.length - 1">・</div>
+                  </div>
+                </div>          
+              </div>】</div>
             <div class="detail-show-song-impression" v-if="song.impression">{{ song.impression }}</div>
           </div>
         </div>
@@ -692,21 +720,88 @@
                     <div class="add-others-cell add-others-header-cell add-others-cell-title">
                       題名
                     </div>
-                    <div class="add-others-cell add-others-header-cell add-others-cell-impression">
+                    <div class="add-others-cell add-others-header-cell add-songs-cell-singer">
+                      歌い手
+                    </div>
+                    <div class="add-others-cell add-others-header-cell add-songs-cell-impression">
                       感想
                     </div>
                   </div>
 
                   <!-- 中身 -->
                   <div class="add-others-bodyblock">
-                    <draggable v-model="editDVD.songs" group="songs" item-key="key" tag="section">
+                    <draggable v-model="editDVD.songs" group="songs" item-key="key" tag="section" @end="endMoveSong">
                       <!-- 1セット -->
-                      <template #item="{element : song}">
+                      <template #item="{element : song, index: songIndex}">
                         <div class="add-others-bodyline">
                           <div class="add-others-cell add-others-body-cell add-others-cell-title">
                             <input type="text" class="add-others-input add-others-title" v-model="song.title">
                           </div>
-                          <div class="add-others-cell add-others-body-cell add-others-cell-impression">
+
+                          <div class="add-others-cell add-others-body-cell add-songs-cell-singer add-singers-body-cell-singer">
+                            <div class="add-song-singer-area">
+                              <draggable v-model="song.singers" group="songList_singers" item-key="key" tag="section">
+                                <template #item="{element : singer, index: singIndex}">
+                                  <div class="add-song-singers-area">
+                                    <div class="add-song-singer-type-area">
+                                      <div class="add-song-singer-type-box">
+                                        <label :for="'detail_song_role_' + songIndex + '_' + singIndex">キャスト</label>
+                                        <input :id="'detail_song_role_' + songIndex + '_' + singIndex" type="radio" class="add-song-singer-type-radio" value="role" v-model="singer.type">
+                                      </div>
+                                      <div class="add-song-singer-type-box">
+                                        <label :for="'detail_song_group_' + songIndex + '_' + singIndex">分類</label>
+                                        <input :id="'detail_song_group_' + songIndex + '_' + singIndex" type="radio" class="add-song-singer-type-radio" value="group" v-model="singer.type">
+                                      </div>
+                                      <div class="add-song-singer-type-box">
+                                        <label :for="'detail_song_input_' + songIndex + '_' + singIndex">入力</label>
+                                        <input :id="'detail_song_input_' + songIndex + '_' + singIndex" type="radio" class="add-song-singer-type-radio" value="name" v-model="singer.type">
+                                      </div>
+                                    </div>
+
+                                    <div class="add-song-singer-select-area">
+                                      <select class="add-song-singer-select-input" v-if="singer.type === 'role'" v-model="singer.role_key">
+                                        <option value="">選択</option>
+                                        <option v-for="role in optionRoles" 
+                                          :value="role.key" :key="role.key">
+                                          {{ role.role }}
+                                        </option>
+                                      </select>
+
+                                      <select class="add-song-singer-select-input" v-if="singer.type === 'group'" v-model="singer.group_key">
+                                        <option value="">選択</option>
+                                        <option v-for="group in optionGroups" 
+                                          :value="group.key" :key="group.key">
+                                          {{ group.name }}
+                                        </option>
+                                      </select>
+
+                                      <input type="text" class="add-song-singer-select-input" v-if="singer.type === 'name'" v-model="singer.name">
+                                    </div>
+                                  </div>
+                                </template>
+                              </draggable>                            
+
+                              <!-- フォームボタン -->
+                              <div class="add-add-minus-button-area add-add-minus-button-area-small">
+                                <div :ref="'detail_minus_button_area_singers_form_' + songIndex" class="add-minus-button-area add-minus-button-area-small" style="visibility: hidden">
+                                  <button type="button" class="add-add-button add-add-button-small" @click="minusSingerForm(songIndex, 'detail_minus_button_area_singers_form_' + songIndex, 'detail_add_button_area_singers_form_' + songIndex)">
+                                    <div class="add-add-button-icon add-add-button-icon-small">
+                                      <i class="fa-solid fa-minus"></i>
+                                    </div>
+                                  </button>
+                                </div>
+                                <div :ref="'detail_add_button_area_singers_form_' + songIndex" class="add-add-button-area add-minus-button-area-small">
+                                  <button type="button" class="add-add-button add-add-button-small" @click="plusSingerForm(songIndex, 'detail_minus_button_area_singers_form_' + songIndex, 'detail_add_button_area_singers_form_' + songIndex)">
+                                    <div class="add-add-button-icon add-add-button-icon-small">
+                                      <i class="fa-solid fa-plus"></i>
+                                    </div>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>  
+                          </div>
+
+                          <div class="add-others-cell add-others-body-cell add-songs-cell-impression">
                             <textarea class="add-others-input add-others-impression" placeholder="どうだった？" v-model="song.impression"></textarea>
                           </div>
                         </div>
@@ -1116,6 +1211,9 @@ export default {
       this.DVD.roleImpressionList.sort((a, b) => a.order - b.order);
       this.DVD.role_groups.sort((a, b) => a.order - b.order);
       this.DVD.songs.sort((a, b) => a.order - b.order);
+      this.DVD.songs.forEach((song) => {
+        song.singers.sort((a, b) => a.order - b.order);
+      });
       this.DVD.others.sort((a, b) => a.order - b.order);
 
       this.originalDVD = JSON.parse(JSON.stringify(this.DVD));
@@ -1209,7 +1307,33 @@ export default {
 
       this.editDVD.histories = this.originalDVD.histories ? this.originalDVD.histories : null;
       this.editDVD.histories.sort((a, b) => a.order - b.order);
-      this.editDVD.songs = this.originalDVD.songs ? this.originalDVD.songs : null;
+      
+      this.originalDVD.songs.forEach((song, index) => {
+        const key = this.getUniqueStr();
+        this.editDVD.songs[index] = new Object();
+        this.editDVD.songs[index].id = song.id;
+        this.editDVD.songs[index].order = song.order;
+        this.editDVD.songs[index].title = song.title;
+        this.editDVD.songs[index].impression = song.impression ? song.impression : null;
+        this.editDVD.songs[index].singers = new Array();
+
+        song.singers.forEach((singer, index2) => {
+          this.editDVD.songs[index].singers[index2] = new Object();
+          this.editDVD.songs[index].singers[index2].id = singer.id;
+          this.editDVD.songs[index].singers[index2].order = singer.order;
+          this.editDVD.songs[index].singers[index2].role_id = singer.role_id ? singer.role_id : null;
+          this.editDVD.songs[index].singers[index2].role_key = this.editDVD.playerList.find(player => player.id === singer.role_id) ? this.editDVD.playerList.find(player => player.id === singer.role_id).key : '';
+          this.editDVD.songs[index].singers[index2].group_id = singer.role_group_id ? singer.role_group_id : null;
+          this.editDVD.songs[index].singers[index2].group_key = this.editDVD.groups.find(group => group.id === singer.role_group_id) ? this.editDVD.groups.find(group => group.id === singer.role_group_id).key : '';
+          this.editDVD.songs[index].singers[index2].name = singer.name ? singer.name : null;
+          this.editDVD.songs[index].singers[index2].type = singer.role_id ? 'role' : singer.role_group_id ? 'group' : 'name';
+        });
+      });
+      this.editDVD.songs.sort((a, b) => a.order - b.order);
+      this.editDVD.songs.forEach((song) => {
+        song.singers.sort((a, b) => a.order - b.order);
+      });
+
       this.editDVD.others = this.originalDVD.others ? this.originalDVD.others : null;
 
       if(this.originalDVD.photos.length) {
@@ -1324,6 +1448,26 @@ export default {
             this.$refs.detail_minus_button_area_songs_form.style.visibility = 'hidden';
           }
         }
+
+        this.editDVD.songs.forEach((song, index) => {
+          if(!song.singers.length) {
+            this.plusSingerForm(index);
+          } else {
+            const addButton = 'detail_add_button_area_singers_form_' + index;
+            const minusButton = 'detail_minus_button_area_singers_form_' + index;
+            if(song.singers.length < 10) {
+              this.$refs[addButton].style.visibility = 'visible';
+            } else {
+              this.$refs[addButton].style.visibility = 'hidden';
+            }
+            
+            if(song.singers.length > 1) {
+              this.$refs[minusButton].style.visibility = 'visible';
+            } else {
+              this.$refs[minusButton].style.visibility = 'hidden';
+            }
+          }
+        });
         
         if(!this.editDVD.others.length) {
           this.plusOtherForm();
@@ -1515,8 +1659,8 @@ export default {
 
       if(!this.editDVD.title || !this.editDVD.kana) {
         return false;
-      }
-      
+      }      
+
       if(this.originalEditDVD.title !== this.editDVD.title || this.originalEditDVD.duration_from !== this.editDVD.duration_from || this.originalEditDVD.duration_to !== this.editDVD.duration_to
          || this.originalEditDVD.story !== this.editDVD.story || this.originalEditDVD.impression !== this.editDVD.impression || this.originalEditDVD.author !== this.editDVD.author || this.originalEditDVD.lyricist !== this.editDVD.lyricist || this.originalEditDVD.choreo !== this.editDVD.choreo || this.originalEditDVD.director !== this.editDVD.director
          || this.originalEditDVD.format !== this.editDVD.format || this.originalEditDVD.official !== this.originalEditDVD.official
@@ -1529,25 +1673,22 @@ export default {
       for(let i = 0; i < this.editDVD.locations.length; i++) {
         this.editDVD.locations[i].order = i + 1;
       }
-      if(!this.editDVD.locations.length) {
-        this.plusLocationForm();
-      }
       if(!flag && this.originalEditDVD.locations.length === this.editDVD.locations.length) {
         this.originalEditDVD.locations.forEach((location, index)  => {
           if(location.id !== this.editDVD.locations[index].id || location.order !== this.editDVD.locations[index].order || location.prefecture !== this.editDVD.locations[index].prefecture || location.theater !== this.editDVD.locations[index].theater) {
             flag = 1;
           }
         });
-      }else {
+      } else {
         flag = 1;
+      }
+      if(!this.editDVD.locations.length) {
+        this.plusLocationForm();
       }
 
       this.editDVD.costumers = this.editDVD.costumers.filter(costumer => costumer.name ? costumer : null);
       for(let i = 0; i < this.editDVD.costumers.length; i++) {
         this.editDVD.costumers[i].order = i + 1;
-      }
-      if(!this.editDVD.costumers.length) {
-        this.plusCostumerForm();
       }
       if(!flag && this.originalEditDVD.costumers.length === this.editDVD.costumers.length) {
         this.originalEditDVD.costumers.forEach((costumer, index)  => {
@@ -1555,17 +1696,17 @@ export default {
             flag = 1;
           }
         });
-      }else {
+      } else {
         flag = 1;
+      }
+      if(!this.editDVD.costumers.length) {
+        this.plusCostumerForm();
       }
       
       this.editDVD.groups = this.editDVD.groups.filter(group => group.name ? group : null);
       this.optionGroups = this.optionGroups.filter(group => group.name ? group : null);
       for(let i = 0; i < this.editDVD.groups.length; i++) {
         this.editDVD.groups[i].order = i + 1;
-      }
-      if(!this.editDVD.groups.length) {
-        this.plusGroupForm();
       }
       if(!flag && this.originalEditDVD.groups.length === this.editDVD.groups.length) {
         this.originalEditDVD.groups.forEach((group, index)  => {
@@ -1576,14 +1717,14 @@ export default {
       } else {
         flag = 1;
       }
+      if(!this.editDVD.groups.length) {
+        this.plusGroupForm();
+      }
 
       this.editDVD.playerList = this.editDVD.playerList.filter(player => player.player ? player : null);
       this.optionRoles = this.optionRoles.filter(role => role.role ? role : null);
       for(let i = 0; i < this.editDVD.playerList.length; i++) {
         this.editDVD.playerList[i].order = i + 1;
-      }
-      if(!this.editDVD.playerList.length) {
-        this.plusPlayerForm();
       }
       if(!flag && this.originalEditDVD.playerList.length === this.editDVD.playerList.length) {
         this.originalEditDVD.playerList.forEach((player,index) => {
@@ -1596,13 +1737,13 @@ export default {
       } else {
         flag = 1;
       }
+      if(!this.editDVD.playerList.length) {
+        this.plusPlayerForm();
+      }
 
       this.editDVD.roleImpressionList = this.editDVD.roleImpressionList.filter(roleImpression => roleImpression.impression ? roleImpression : null);
       for(let i = 0; i < this.editDVD.roleImpressionList.length; i++) {
         this.editDVD.roleImpressionList[i].order = i + 1;
-      }
-      if(!this.editDVD.roleImpressionList.length) {
-        this.plusRoleImpressionForm();
       }
       if(!flag && this.originalEditDVD.roleImpressionList.length === this.editDVD.roleImpressionList.length) {
         this.originalEditDVD.roleImpressionList.forEach((role,index) => {
@@ -1618,6 +1759,9 @@ export default {
         });
       } else {
         flag = 1;
+      }
+      if(!this.editDVD.roleImpressionList.length) {
+        this.plusRoleImpressionForm();
       }
 
       this.editDVD.photos = this.editDVD.photos.filter(photo => photo.photo || photo.photo === 0 ? photo : null);
@@ -1638,9 +1782,6 @@ export default {
       for(let i = 0; i < this.editDVD.histories.length; i++) {
         this.editDVD.histories[i].order = i + 1;
       }
-      if(!this.editDVD.histories.length) {
-        this.plusHistoryForm();
-      }
       if(!flag && this.originalEditDVD.histories.length === this.editDVD.histories.length) {
         this.originalEditDVD.histories.forEach((other, index) => {
           if(history.id !== this.editDVD.histories[index].id || history.order !== this.editDVD.histories[index].order || history.title !== this.editDVD.histories[index].title || history.history !== this.editDVD.histories[index].history ) {
@@ -1650,30 +1791,61 @@ export default {
       } else {
         flag = 1;
       }
+      if(!this.editDVD.histories.length) {
+        this.plusHistoryForm();
+      }
 
       this.editDVD.songs = this.editDVD.songs.filter(song => song.title ? song : null);
       for(let i = 0; i < this.editDVD.songs.length; i++) {
         this.editDVD.songs[i].order = i + 1;
-      }
-      if(!this.editDVD.songs.length) {
-        this.plusSongForm();
+        this.editDVD.songs[i].singers = this.editDVD.songs[i].singers.filter(singer => singer.role_key || singer.group_key  || singer.name ? 1 : null);
+        for(let k = 0; k < this.editDVD.songs[i].singers.length; k++) {
+          this.editDVD.songs[i].singers[k].order = k + 1;
+        }
       }
       if(!flag && this.originalEditDVD.songs.length === this.editDVD.songs.length) {
         this.originalEditDVD.songs.forEach((song, index) => {
           if(song.id !== this.editDVD.songs[index].id || song.order !== this.editDVD.songs[index].order || song.title !== this.editDVD.songs[index].title || song.impression !== this.editDVD.songs[index].impression) {
             flag = 1;
+          } else {
+            if(song.singers.length === this.editDVD.songs[index].singers.length) {
+              song.singers.forEach((singer, index2) => {
+                if(singer.id !== this.editDVD.songs[index].singers[index2].id || singer.order !== this.editDVD.songs[index].singers[index2].order || singer.type !== this.editDVD.songs[index].singers[index2].type) {
+                  flag = 1;
+                } else if(singer.type === 'role') {
+                  if(singer.role_key !== this.editDVD.songs[index].singers[index2].role_key || singer.role_id !== this.editDVD.songs[index].singers[index2].role_id) {
+                    flag = 1;
+                  }
+                } else if(singer.type === 'group') {
+                  if(singer.group_key !== this.editDVD.songs[index].singers[index2].group_key || singer.group_id !== this.editDVD.songs[index].singers[index2].group_id) {
+                    flag = 1;
+                  }
+                } else {
+                  if(singer.name !== this.editDVD.songs[index].singers[index2].name) {
+                    flag = 1;
+                  }
+                }
+              });
+            } else {
+              flag = 1;
+            }            
           }
         });
       } else {
         flag = 1;
       }
+      if(!this.editDVD.songs.length) {
+        this.plusSongForm();
+      }
+      this.editDVD.songs.forEach((song, index) => {
+        if(!song.singers.length) {
+          this.plusSingerForm(index);
+        }
+      });
 
       this.editDVD.others = this.editDVD.others.filter(other => other.title || other.impression ? other : null);
       for(let i = 0; i < this.editDVD.others.length; i++) {
         this.editDVD.others[i].order = i + 1;
-      }
-      if(!this.editDVD.others.length) {
-        this.plusOtherForm();
       }
       if(!flag && this.originalEditDVD.others.length === this.editDVD.others.length) {
         this.originalEditDVD.others.forEach((other, index) => {
@@ -1683,6 +1855,9 @@ export default {
         });
       } else {
         flag = 1;
+      }
+      if(!this.editDVD.others.length) {
+        this.plusOtherForm();
       }
 
       // タイトル（ふりがな）正規表現
@@ -1783,6 +1958,7 @@ export default {
       formData.append('kana', kana);
       formData.append('duration_from', this.editDVD.duration_from);
       formData.append('duration_to', this.editDVD.duration_to);
+      
       this.editDVD.locations.forEach(location => {
         if(location.prefecture){
           formData.append('location[' + count + '][id]', location.id ? location.id : '');
@@ -1793,10 +1969,12 @@ export default {
         }
       });
       count = 0;
+      
       formData.append('impression', this.editDVD.impression);
       formData.append('story', this.editDVD.story);
       formData.append('author', this.editDVD.author ? this.editDVD.author.replace(/\s+/g,'') : '');
       formData.append('costumer', this.editDVD.costumer ? this.editDVD.costumer.replace(/\s+/g,'') : '');      
+      
       this.editDVD.costumers.forEach(costumer => {
         if(costumer.name){
           formData.append('costumer[' + count + '][id]', costumer.id ? costumer.id : '');
@@ -1806,9 +1984,11 @@ export default {
         }
       });
       count = 0;
+      
       formData.append('lyricist', this.editDVD.lyricist ? this.editDVD.lyricist.replace(/\s+/g,'') : '');
       formData.append('choreo', this.editDVD.choreo ? this.editDVD.choreo.replace(/\s+/g,'') : '');
       formData.append('director', this.editDVD.director ? this.editDVD.director.replace(/\s+/g,'') : '');
+      
       this.editDVD.groups.forEach(group => {
         if(group.name){
           if(group.name.replace(/\s+/g,'')) {
@@ -1821,6 +2001,7 @@ export default {
         }
       });
       count = 0;
+      
       this.editDVD.playerList.forEach(player => {
         if(player.player){
           if(player.player.replace(/\s+/g,'')) {
@@ -1833,6 +2014,7 @@ export default {
             formData.append('role[' + count + '][order]', player.order);
             formData.append('role[' + count + '][group_key]', player.group_key ? player.group_key : '');
             formData.append('role[' + count + '][role]', player.role ? player.role : '');
+            formData.append('role[' + count + '][key]', player.key);
             formData.append('role[' + count + '][player]', player.player.replace(/\s+/g,''));
             formData.append('role[' + count + '][member]', player.member ? 1 : 0);
             formData.append('role[' + count + '][impression]', role_impression ? role_impression.impression ? role_impression.impression : '' : '');
@@ -1858,6 +2040,7 @@ export default {
         }
       });
       count = 0;
+      
       this.editDVD.histories.forEach(history => {
         if(history.history) {
           if(history.history.replace(/\s+/g, '')) {
@@ -1883,6 +2066,7 @@ export default {
         }
       });
       count = 0
+      
       this.editDVD.songs.forEach(song => {
         if(song.title){
           if(song.title.replace(/\s+/g,'')) {
@@ -1890,11 +2074,41 @@ export default {
             formData.append('song[' + count + '][order]', song.order);
             formData.append('song[' + count + '][title]', song.title);
             formData.append('song[' + count + '][impression]', song.impression ? song.impression.replace(/\r+/g, '') : '');
+
+            if(song.singers.length) {
+              let count2 = 0;
+              for(let k = 0; k < song.singers.length; k++) {
+                const singer = song.singers[k];
+                if(singer.role_key || singer.group_key || singer.name) {
+                  let singerFlag = 0;
+                  if(singer.role_key || singer.group_key) {
+                    singerFlag = 1;
+                  } else if(singer.name.replace(/\s+/g, '')) {
+                    singerFlag = 1;
+                  }
+
+                  if(singerFlag) {
+                    formData.append('song[' + count + '][singer][' + count2 + '][id]', singer.id ? singer.id : '');
+                    formData.append('song[' + count + '][singer][' + count2 + '][order]', count2 + 1);
+                    formData.append('song[' + count + '][singer][' + count2 + '][type]', singer.type);
+                    if(singer.type === 'role') {
+                      formData.append('song[' + count + '][singer][' + count2 + '][name]', singer.role_key);
+                    } else if(singer.type === 'group') {
+                      formData.append('song[' + count + '][singer][' + count2 + '][name]', singer.group_key);
+                    } else if(singer.type === 'name') {
+                      formData.append('song[' + count + '][singer][' + count2 + '][name]', singer.name.replace(/\s+/g, ''));
+                    }                      
+                    count2++;
+                  }
+                }
+              }
+            }
             count++;
           }
         }
       });
       count = 0
+      
       this.editDVD.others.forEach(other => {
         let other_title_flag = 0;
         let other_impression_flag = 0;
@@ -1920,6 +2134,7 @@ export default {
         }
       });
       count = 0
+      
       formData.append('photo[' + count + '][id]', this.editDVD.photos[0].id ? this.editDVD.photos[0].id : '');
       formData.append('photo[' + count + '][public_id]', this.editDVD.photos[0].public_id ? this.editDVD.photos[0].public_id : '');
       formData.append('photo[' + count + '][url]', this.editDVD.photos[0].url ? this.editDVD.photos[0].url : '');
@@ -2333,7 +2548,7 @@ export default {
       if(this.editDVD.songs.length < 10) {
         // 追加
         this.editDVD.songs.push({
-          id: null, order: this.editDVD.songs.length, title: null, impression: null
+          id: null, order: this.editDVD.songs.length, title: null, singers: [{order: '', type: 'role', role_key: '', role_id: null, group_key: '', group_id: null, name: null}], impression: null
         });
 
         if(this.editDVD.songs.length === 2) {
@@ -2352,6 +2567,50 @@ export default {
           this.$refs.detail_minus_button_area_songs_form.style.visibility = 'hidden';
         } else if (this.editDVD.songs.length === 9) {
           this.$refs.detail_add_button_area_songs_form.style.visibility = 'visible';
+        }
+      }
+    },
+    endMoveSong() {
+      this.editDVD.songs.forEach((song, index) => {
+        const addButton = 'detail_add_button_area_singers_form_' + index;
+        const minusButton = 'detail_minus_button_area_singers_form_' + index;
+        if(song.singers.length > 1) {
+          this.$refs[minusButton].style.visibility = 'visible';
+        } else {
+          this.$refs[minusButton].style.visibility = 'hidden';
+        }
+        if(song.singers.length < 10) {
+          this.$refs[addButton].style.visibility = 'visible';
+        } else {
+          this.$refs[addButton].style.visibility = 'hidden';
+        }
+      });
+    },
+
+    // 歌手フォーム
+    plusSingerForm(songIndex, minusButton, addButton) {
+      if(this.editDVD.songs[songIndex].singers.length < 10) {
+        // 追加
+        this.editDVD.songs[songIndex].singers.push({
+          order: '', type: 'role', role_key: '', role_id: null, group_key: '', group_id: null, name: null
+        });
+
+        if(this.editDVD.songs[songIndex].singers.length === 2) {
+          this.$refs[minusButton].style.visibility = 'visible';
+        } else if (this.editDVD.songs[songIndex].singers.length === 10) {
+          this.$refs[addButton].style.visibility = 'hidden';
+        }
+      }
+    },
+    minusSingerForm(songIndex, minusButton, addButton) {
+      if(this.editDVD.songs[songIndex].singers.length > 1) {
+        // 削除
+        this.editDVD.songs[songIndex].singers.pop();
+
+        if(this.editDVD.songs[songIndex].singers.length === 1){
+          this.$refs[minusButton].style.visibility = 'hidden';
+        } else if (this.editDVD.songs[songIndex].singers.length === 9) {
+          this.$refs[addButton].style.visibility = 'visible';
         }
       }
     },

@@ -6,19 +6,19 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 
-class Song extends Model
+class Singer extends Model
 {
-    protected $table = 'song';
+    protected $table = 'singer';
     
     /** 取得時にJSONに含める属性 */
     protected $visible = [
-        'id', 'DVD_id', 'order', 'title', 'impression', 'created_at', 'updated_at',
-        'singers'
+        'id', 'DVD_id', 'song_id', 'order', 'role_id', 'role_group_id', 'name', 'created_at', 'updated_at',
+        'role', 'role_group'
     ];
 
     /** 登録時にJSONに含める属性 */
     protected $fillable = [
-        'id', 'DVD_id', 'order', 'title', 'impression'
+        'id', 'DVD_id', 'song_id', 'order', 'role_id', 'role_group_id', 'name'
     ];
 
     public function getCreatedAtAttribute()
@@ -41,12 +41,30 @@ class Song extends Model
     }
 
     /**
-     * リレーションシップ - singerテーブル
+     * リレーションシップ - songテーブル
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function singers()
+    public function song()
     {
-        return $this->hasMany('App\Models\Singer');
+        return $this->belongsTo('App\Models\song', 'song_id');
+    }
+
+    /**
+     * リレーションシップ - role_groupテーブル
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function role()
+    {
+        return $this->belongsTo('App\Models\Role','role_id');
+    }
+
+    /**
+     * リレーションシップ - role_groupテーブル
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function role_group()
+    {
+        return $this->belongsTo('App\Models\Role_group','role_group_id');
     }
 }
 

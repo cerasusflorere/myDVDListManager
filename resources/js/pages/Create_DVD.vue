@@ -458,7 +458,7 @@
 
                 <!-- 中身 -->
                 <div class="add-others-bodyblock">
-                  <draggable v-model="registerForm.songList" group="songList" item-key="key" tag="section">
+                  <draggable v-model="registerForm.songList" group="songList" item-key="key" tag="section" @end="endMoveSong">
                     <!-- 1セット -->
                     <template #item="{element : song, index: songIndex}">
                       <div class="add-others-bodyline">
@@ -469,25 +469,25 @@
                         <div class="add-others-cell add-others-body-cell add-songs-cell-singer add-singers-body-cell-singer">
                           <div class="add-song-singer-area">
                             <draggable v-model="song.singers" group="songList_singers" item-key="key" tag="section">
-                              <template #item="{element : singer}">
+                              <template #item="{element : singer, index: singIndex}">
                                 <div class="add-song-singers-area">
                                   <div class="add-song-singer-type-area">
                                     <div class="add-song-singer-type-box">
-                                      <label for="add_song_role">キャスト</label>
-                                      <input id="add_song_role" type="radio" class="add-song-singer-type-radio" value="role" v-model="singer.type">
+                                      <label :for="'add_song_role_' + songIndex + '_' + singIndex">キャスト</label>
+                                      <input :id="'add_song_role_' + songIndex + '_' + singIndex" type="radio" class="add-song-singer-type-radio" value="role" v-model="singer.type">
                                     </div>
                                     <div class="add-song-singer-type-box">
-                                      <label for="add_song_group">分類</label>
-                                      <input id="add_song_group" type="radio" class="add-song-singer-type-radio" value="group" v-model="singer.type">
+                                      <label :for="'add_song_group_' + songIndex + '_' + singIndex">分類</label>
+                                      <input :id="'add_song_group_' + songIndex + '_' + singIndex" type="radio" class="add-song-singer-type-radio" value="group" v-model="singer.type">
                                     </div>
                                     <div class="add-song-singer-type-box">
-                                      <label for="add_song_input">入力</label>
-                                      <input id="add_song_input" type="radio" class="add-song-singer-type-radio" value="input" v-model="singer.type">
+                                      <label :for="'add_song_input_' + songIndex + '_' + singIndex">入力</label>
+                                      <input :id="'add_song_input_' + songIndex + '_' + singIndex" type="radio" class="add-song-singer-type-radio" value="name" v-model="singer.type">
                                     </div>
                                   </div>
 
                                   <div class="add-song-singer-select-area">
-                                    <select class="add-song-singer-select-input" v-if="singer.type === 'role'" v-model="singer.name">
+                                    <select class="add-song-singer-select-input" v-if="singer.type === 'role'" v-model="singer.role_key">
                                       <option value="">選択</option>
                                       <option v-for="role in optionRoles" 
                                         :value="role.key" :key="role.key">
@@ -495,7 +495,7 @@
                                       </option>
                                     </select>
 
-                                    <select class="add-song-singer-select-input" v-if="singer.type === 'group'" v-model="singer.name">
+                                    <select class="add-song-singer-select-input" v-if="singer.type === 'group'" v-model="singer.group_key">
                                       <option value="">選択</option>
                                       <option v-for="group in optionGroups" 
                                         :value="group.key" :key="group.key">
@@ -503,7 +503,7 @@
                                       </option>
                                     </select>
 
-                                    <input type="text" class="add-song-singer-select-input" v-if="singer.type === 'input'" v-model="singer.name">
+                                    <input type="text" class="add-song-singer-select-input" v-if="singer.type === 'name'" v-model="singer.name">
                                   </div>
                                 </div>
                               </template>
@@ -750,7 +750,7 @@
           groupList : [{key: null, order: 0, name: null}],
           roleImpressionList: [{order: 0, role_key: '', impression: null, preview: null, photo: null}],
           historyList: [{title: null, history: null}],
-          songList: [{title: null, singers: [{type: 'role', name: ''}], impression: null}],
+          songList: [{title: null, singers: [{type: 'role', role_key: '', group_key: '', name: null}], impression: null}],
           otherList: [{title: null, impression: null}],
           preview: null,
           photo: '',
@@ -1085,11 +1085,12 @@
           const player = this.registerForm.playerList[i];
           if(player.player){
             if(player.player.replace(/\s+/g,'')) {
-              const  role_impression = this.registerForm.roleImpressionList.find(roleImpression => roleImpression.role_key == player.key);
+              const  role_impression = this.registerForm.roleImpressionList.find(roleImpression => roleImpression.role_key === player.key);
               
               formData.append('role[' + count + '][order]', count + 1);
               formData.append('role[' + count + '][group_key]', player.group_key ? player.group_key : '');
               formData.append('role[' + count + '][role]', player.role ? player.role : '');
+              formData.append('role[' + count + '][key]', player.key);
               formData.append('role[' + count + '][player]', player.player);
               formData.append('role[' + count + '][member]', player.member ? 1 : 0);
               formData.append('role[' + count + '][impression]', role_impression ? role_impression.impression ? role_impression.impression : '' : '');
@@ -1134,6 +1135,34 @@
               formData.append('song[' + count + '][order]', count + 1);
               formData.append('song[' + count + '][title]', song.title);
               formData.append('song[' + count + '][impression]', song.impression ? song.impression.replace(/\r+/g, '') : '');
+              
+              if(song.singers.length) {
+                let count2 = 0;
+                for(let k = 0; k < song.singers.length; k++) {
+                  const singer = song.singers[k];
+                  if(singer.role_key || singer.group_key || singer.name) {
+                    let singerFlag = 0;
+                    if(singer.role_key || singer.group_key) {
+                      singerFlag = 1;
+                    } else if(singer.name.replace(/\s+/g, '')) {
+                      singerFlag = 1;
+                    }
+
+                    if(singerFlag) {
+                      formData.append('song[' + count + '][singer][' + count2 + '][order]', count2 + 1);
+                      formData.append('song[' + count + '][singer][' + count2 + '][type]', singer.type);
+                      if(singer.type === 'role') {
+                        formData.append('song[' + count + '][singer][' + count2 + '][name]', singer.role);
+                      } else if(singer.type === 'group') {
+                        formData.append('song[' + count + '][singer][' + count2 + '][name]', singer.group);
+                      } else if(singer.type === 'name') {
+                        formData.append('song[' + count + '][singer][' + count2 + '][name]', singer.name.replace(/\s+/g, ''));
+                      }                      
+                      count2++;
+                    }
+                  }
+                }
+              }
               count++;
             }
           }
@@ -1285,7 +1314,7 @@
           groupList : [{key: this.getUniqueStr(), order: 0, name: null}],
           roleImpressionList: [{order: 0, role_key: "", impression: null, preview: null, photo: null}],
           historyList: [{title: null, history: null}],
-          songList: [{title: null, impression: null}],
+          songList: [{title: null, singers: [{type: 'role', role_key: '', group_key: '', name: null}], impression: null}],
           otherList: [{title: null, impression: null}],
           preview: null,
           photo: '',
@@ -1605,7 +1634,7 @@
         if(this.registerForm.songList.length < 10) {
           // 追加
           this.registerForm.songList.push({
-            title: null, singers:[{type: 'role', name: ''}], impression: null
+            title: null, singers:[{type: 'role', role_key: '', group_key: '', name: null}], impression: null
           });
 
           if(this.registerForm.songList.length === 2) {
@@ -1627,13 +1656,29 @@
           }
         }
       },
+      endMoveSong() {
+        this.registerForm.songList.forEach((song, index) => {
+          const addButton = 'add_add_button_area_singers_form_' + index;
+          const minusButton = 'add_minus_button_area_singers_form_' + index;
+          if(song.singers.length > 1) {
+            this.$refs[minusButton].style.visibility = 'visible';
+          } else {
+            this.$refs[minusButton].style.visibility = 'hidden';
+          }
+          if(song.singers.length < 10) {
+            this.$refs[addButton].style.visibility = 'visible';
+          } else {
+            this.$refs[addButton].style.visibility = 'hidden';
+          }
+        });
+      },
 
       // 歌手フォーム
       plusSingerForm(songIndex, minusButton, addButton) {
         if(this.registerForm.songList[songIndex].singers.length < 10) {
           // 追加
           this.registerForm.songList[songIndex].singers.push({
-            type: 'role', name: ''
+            type: 'role', role_key: '', group_key: '', name: null
           });
 
           if(this.registerForm.songList[songIndex].singers.length === 2) {

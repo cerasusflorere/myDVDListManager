@@ -48,4 +48,13 @@ class Role_group extends Model
     {
         return $this->hasMany('App\Models\Role');
     }
+
+    /**
+     * リレーションシップ - singerテーブル
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function singer()
+    {
+        return $this->hasMany('App\Models\Singer');
+    }
 }
