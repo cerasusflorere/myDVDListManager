@@ -19,6 +19,10 @@
   h1 {
     font-size: 3.125em;
   }
+
+  input[type=radio] {
+    margin: 0;
+  }
   /*
   form {
     background-color: #eee;
@@ -952,7 +956,7 @@
   .add-special-area {
     display: flex;
     flex-direction: row;
-    align-items: flex-start;
+    align-items: center;
     gap: 1rem;
   }
   .add-special-header {    
@@ -1323,8 +1327,12 @@
 }
 .search-sort-set-area {
   display: flex;
-  align-items: baseline;
   flex-direction: row;
+  gap: 0.5rem;
+}
+.search-sort-set-block {
+  display: flex;
+  align-items: baseline;
   gap: 0.2rem;
 }
 .search-refine-set-area {
@@ -1342,7 +1350,15 @@
 .search-refine-duration-date-area {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 0.1rem;
+}
+.search-refine-duration-date-after-area {
+  display: flex;
+  gap: 0.1rem;
+}
+.search-refine-duration-date-before-area {
+  display: flex;
   gap: 0.1rem;
 }
 .search-refine-duration-check-area {
@@ -1587,6 +1603,10 @@
   display: flex;
   align-items: baseline;
   gap: 0.2rem;
+}
+.detail-show-role-impression-detail-player-brackets {
+  display: flex;
+  align-items: center;
 }
 .detail-show-role-impression-detail-small {
   font-size: 0.8rem;
@@ -1898,17 +1918,13 @@
   }
   /* 写真 */
   .list-grid-box {
-    grid-template-columns: repeat(auto-fit, 30%);
+    grid-template-columns: repeat(auto-fit, 47%);
   }
   .list-grid-photo-wrapper {
     height: 10rem;
   }
   .list-grid-duration {
     font-size: 0.5rem;
-  }
-  /* 検索 */
-  .overlay-custom {
-    align-items: center;  
   }
   
 
@@ -1946,9 +1962,46 @@
   .detail-show-photo-grid-box {
     grid-template-columns: repeat(auto-fit, 100%);
   }
+  .detail-show-other-flex {
+    flex-direction: column;
+  }
+  .detail-show-other-width {
+    width: 100%;
+  }
+  .detail-show-role-impression-detail-header {
+    flex-direction: column;
+    width: 100%;
+  }
+  .detail-show-role-impression-detail-player-brackets {
+    justify-content: flex-end;
+    width: 100%;
+  }
   /* 写真拡大 */
   .photo-overlay {
     overflow-y: hidden;
     align-items: center;
+  }
+}
+
+/* 検索画面 */
+@media only screen and (min-device-height: 790px) {
+  /* 検索 */
+  .overlay-custom {
+    align-items: center;  
+  }
+}
+
+@media only screen and (max-device-width: 470px) {
+  /* 検索 */
+  .search-sort-set-area {
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+  .search-refine-duration-date-area {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  .search-refine-duration-date-after-area {
+    width: 100%;
   }
 }

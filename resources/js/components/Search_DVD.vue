@@ -18,11 +18,15 @@
           <div class="search-sort-area">
             <span class="search-header"><i class="fas fa-sort fa-fw"></i>並び替え</span>
             <div class="search-sort-set-area">
-              <input type="radio" id="search_sort_duration" v-model="searchContentDVD.sort" value="duration">
-              <label for="search_sort_duration">公演期間順</label>       
+              <div class="search-sort-set-block">
+                <input type="radio" id="search_sort_duration" v-model="searchContentDVD.sort" value="duration">
+                <label for="search_sort_duration">公演期間順</label>
+              </div>
 
-              <input type="radio" id="search_sort_title" v-model="searchContentDVD.sort" value="title">
-              <label for="search_sort_title">タイトル順</label>
+              <div class="search-sort-set-block">
+                <input type="radio" id="search_sort_title" v-model="searchContentDVD.sort" value="title">
+                <label for="search_sort_title">タイトル順</label>
+              </div>              
             </div>
           </div>
 
@@ -66,33 +70,36 @@
 
                 <div class="search-refine-duration-set-area">
                   <div class="search-refine-duration-date-area">
-                    <select v-model="searchContentDVD.refine.durationFrom.year">
-                      <option v-for="(year) in yearList" :value="year">
-                        {{ year }}
-                      </option>
-                    </select>
-                    <span class="search-header">年</span>
-                    <select v-model="searchContentDVD.refine.durationFrom.month">
-                      <option v-for="(month) in monthList" :value="month">
-                        {{ month }}
-                      </option>
-                    </select>
-                    <span class="search-header">月</span>
+                    <div class="search-refine-duration-date-after-area">
+                      <select v-model="searchContentDVD.refine.durationFrom.year">
+                        <option v-for="(year) in yearList" :value="year">
+                          {{ year }}
+                        </option>
+                      </select>
+                      <span class="search-header">年</span>
+                      <select v-model="searchContentDVD.refine.durationFrom.month">
+                        <option v-for="(month) in monthList" :value="month">
+                          {{ month }}
+                        </option>
+                      </select>
+                      <span class="search-header">月</span>
 
-                    <span class="search-header">~</span>
-
-                    <select v-model="searchContentDVD.refine.durationTo.year">
-                      <option v-for="(year) in yearList" :value="year">
-                        {{ year }}
-                      </option>
-                    </select>
-                    <span class="search-header">年</span>
-                    <select v-model="searchContentDVD.refine.durationTo.month">
-                      <option v-for="(month) in monthList" :value="month">
-                        {{ month }}
-                      </option>
-                    </select>
-                    <span class="search-header">月</span>
+                      <span class="search-header">~</span>
+                    </div>
+                   <div class="search-refine-duration-date-before-area">
+                      <select v-model="searchContentDVD.refine.durationTo.year">
+                        <option v-for="(year) in yearList" :value="year">
+                          {{ year }}
+                        </option>
+                      </select>
+                      <span class="search-header">年</span>
+                      <select v-model="searchContentDVD.refine.durationTo.month">
+                        <option v-for="(month) in monthList" :value="month">
+                          {{ month }}
+                        </option>
+                      </select>
+                      <span class="search-header">月</span>
+                   </div>                    
                   </div>
 
                   <div class="search-refine-duration-check-area">
