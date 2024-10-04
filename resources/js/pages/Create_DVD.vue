@@ -512,14 +512,14 @@
                             <!-- フォームボタン -->
                             <div class="add-add-minus-button-area add-add-minus-button-area-small">
                               <div :ref="'add_minus_button_area_singers_form_' + songIndex" class="add-minus-button-area add-minus-button-area-small" style="visibility: hidden">
-                                <button type="button" class="add-add-button add-add-button-small" @click="minusSingerForm(songIndex, 'add_minus_button_area_singers_form_' + songIndex, 'add_add_button_area_singers_form_' + songIndex)">
+                                <button type="button" class="add-add-button add-add-button-small" @click="minusSingerForm(songIndex)">
                                   <div class="add-add-button-icon add-add-button-icon-small">
                                     <i class="fa-solid fa-minus"></i>
                                   </div>
                                 </button>
                               </div>
                               <div :ref="'add_add_button_area_singers_form_' + songIndex" class="add-add-button-area add-minus-button-area-small">
-                                <button type="button" class="add-add-button add-add-button-small" @click="plusSingerForm(songIndex, 'add_minus_button_area_singers_form_' + songIndex, 'add_add_button_area_singers_form_' + songIndex)">
+                                <button type="button" class="add-add-button add-add-button-small" @click="plusSingerForm(songIndex)">
                                   <div class="add-add-button-icon add-add-button-icon-small">
                                     <i class="fa-solid fa-plus"></i>
                                   </div>
@@ -1674,12 +1674,15 @@
       },
 
       // 歌手フォーム
-      plusSingerForm(songIndex, minusButton, addButton) {
+      plusSingerForm(songIndex) {
         if(this.registerForm.songList[songIndex].singers.length < 10) {
           // 追加
           this.registerForm.songList[songIndex].singers.push({
             type: 'role', role_key: '', group_key: '', name: null
           });
+
+          const addButton = 'add_add_button_area_singers_form_' + songIndex;
+          const minusButton = 'add_minus_button_area_singers_form_' + songIndex;
 
           if(this.registerForm.songList[songIndex].singers.length === 2) {
             this.$refs[minusButton].style.visibility = 'visible';
@@ -1688,10 +1691,13 @@
           }
         }
       },
-      minusSingerForm(songIndex, minusButton, addButton) {
+      minusSingerForm(songIndex) {
         if(this.registerForm.songList[songIndex].singers.length > 1) {
           // 削除
           this.registerForm.songList[songIndex].singers.pop();
+          
+          const addButton = 'add_add_button_area_singers_form_' + songIndex;
+          const minusButton = 'add_minus_button_area_singers_form_' + songIndex;
 
           if(this.registerForm.songList[songIndex].singers.length === 1){
             this.$refs[minusButton].style.visibility = 'hidden';

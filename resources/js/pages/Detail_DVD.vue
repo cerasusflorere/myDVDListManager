@@ -46,22 +46,22 @@
         </div>
 
         <div class="detail-show-info-line" v-if="DVD.url_DVD">
-          <div class="detail-show-info-block">
-            <div class="detail-show-info-header">イーオシ:</div>
+          <div class="detail-show-info-block detail-show-other-flex">
+            <div class="detail-show-info-header detail-show-other-width">イーオシ:</div>
             <a :href="DVD.url_DVD" class="detail-show-info-header" target="_blank" rel="noopener noreferrer">{{ DVD.url_DVD }}</a>
           </div>
         </div>
 
         <div class="detail-show-info-line" v-if="DVD.url_movie">
-          <div class="detail-show-info-block">
-            <div class="detail-show-info-header">ゲキ×シネ:</div>
+          <div class="detail-show-info-block detail-show-other-flex">
+            <div class="detail-show-info-header detail-show-other-width">ゲキ×シネ:</div>
             <a :href="DVD.url_movie" class="detail-show-info-header" target="_blank" rel="noopener noreferrer">{{ DVD.url_movie }}</a>
           </div>
         </div>
 
         <div class="detail-show-info-line" v-if="DVD.url_youtube">
-          <div class="detail-show-info-block">
-            <div class="detail-show-info-header">映像:</div>
+          <div class="detail-show-info-block detail-show-other-flex">
+            <div class="detail-show-info-header detail-show-other-width">映像:</div>
             <a :href="DVD.url_youtube" class="detail-show-info-header" target="_blank" rel="noopener noreferrer">{{ DVD.url_youtube }}</a>
           </div>
         </div>
@@ -84,8 +84,8 @@
       </div>
 
       <!-- 公演期間 -->
-      <div class="detail-show-duration-area" v-if="DVD.duration_from">
-        <div class="detail-show-header">公演期間</div>
+      <div class="detail-show-duration-area detail-show-other-flex" v-if="DVD.duration_from">
+        <div class="detail-show-header detail-show-other-width">公演期間</div>
         <div class="detail-show-duration">
           <div class="detail-show-duration-content" v-if="DVD.duration_from">{{ DVD.duration_from }}</div>
           <div class="detail-show-duration-content" v-if="DVD.duration_to">~</div>
@@ -94,10 +94,10 @@
       </div>
 
       <!-- 公演地 -->
-      <div class="detail-show-locations-area" v-if="DVD.locations.length">
+      <div class="detail-show-locations-area detail-show-other-flex" v-if="DVD.locations.length">
         <div class="detail-show-header">公演地</div>
-        <div class="detail-show-locations-block">
-          <div class="detail-show-location-area" v-for="location in DVD.locations">
+        <div class="detail-show-locations-block detail-show-other-width">
+          <div class="detail-show-location-area detail-show-other-width" v-for="location in DVD.locations">
             <div class="detail-show-location-content">{{ location.theater }}</div>
             <div class="detail-show-location-content-small" v-if="location.prefecture">
               (@{{ optionPrefectures[optionPrefectures.findIndex(({value}) => value == location.prefecture)].title }})
@@ -141,27 +141,27 @@
       </div>
 
       <!-- あらすじ -->
-      <div class="detail-show-story-area" v-if="DVD.story">
-        <div class="detail-show-header">あらすじ</div>
-        <div class="detail-show-story">{{ DVD.story }}</div>
+      <div class="detail-show-story-area detail-show-other-flex" v-if="DVD.story">
+        <div class="detail-show-header detail-show-other-width">あらすじ</div>
+        <div class="detail-show-story detail-show-other-width">{{ DVD.story }}</div>
       </div>
 
       <!-- 配役 -->
-      <div class="detail-show-roles-area" v-if="DVD.roles.length">
+      <div class="detail-show-roles-area detail-show-other-flex" v-if="DVD.roles.length">
         <div class="detail-show-header">配役</div>
-        <div class="detail-show-roles-block">
+        <div class="detail-show-roles-block detail-show-other-width">
           <div class="detail-show-role-area" v-for="role in DVD.roles">
             <div class="detail-show-role-role" v-if="role.role">{{ role.role }}:</div>
             <div class="detail-show-role-role" v-else></div>
             <div class="detail-show-role-content" v-if="role.player">{{ role.player }}</div>
           </div>
-        </div>        
+        </div>
       </div>
 
       <!-- 感想 -->
-      <div class="detail-show-impression-area" v-if="DVD.impression">
+      <div class="detail-show-impression-area detail-show-other-flex" v-if="DVD.impression">
         <div class="detail-show-header">感想</div>
-        <div class="detail-show-impression">{{ DVD.impression }}</div>
+        <div class="detail-show-impression detail-show-other-width">{{ DVD.impression }}</div>
       </div>
 
       <!-- 役感想 -->
@@ -169,7 +169,7 @@
         <div class="detail-show-role-impression-block" v-for="roleImpression in DVD.roleImpressionList">
           <div class="detail-show-role-impression-area">
             <div class="detail-show-role-impression-detail-area">
-              <div class="detail-show-role-impression-detail-header">【{{ roleImpression.role }} <span class="detail-show-role-impression-detail-small">(by {{ roleImpression.player }})</span>】</div>
+              <div ref="detail_show_role_impression_headers">【{{ roleImpression.role }} <span><span class="detail-show-role-impression-detail-small">(by {{ roleImpression.player }})</span>】</span></div>
               <div class="detail-show-role-impression-detail-impression">{{ roleImpression.impression }}</div>
             </div>
             <div class="detail-show-role-impression-photo">
@@ -190,9 +190,9 @@
       <div class="detail-show-others-area" v-if="DVD.histories.length">
         <div class="detail-show-header">歴史</div>
         <div class="detail-show-others-block">
-          <div v-for="history in DVD.histories" class="detail-show-other-area">
-            <div class="detail-show-header" v-if="history.title">{{ history.title }}</div>
-            <div class="detail-show-other-area">{{ history.history }}</div>
+          <div v-for="history in DVD.histories" class="detail-show-other-area detail-show-other-flex">
+            <div class="detail-show-header detail-show-other-width" v-if="history.title">{{ history.title }}</div>
+            <div class="detail-show-other-area detail-show-other-width">{{ history.history }}</div>
           </div>
         </div>
       </div>
@@ -202,7 +202,7 @@
         <div class="detail-show-header">歌</div>
         <div class="detail-show-others-block">
           <div v-for="song in DVD.songs" class="detail-show-song-area">
-            <div class="detail-show-singer-common detail-show-singer-2">
+            <div ref="detail_song_titles" class="detail-show-singer-common detail-show-singer-2">
               <div class="detail-show-singer-common">
                 【
               </div>
@@ -212,44 +212,48 @@
                   <div v-if="song.singers.length" class="detail-show-singer-common">/</div>
                 </div>
 
-                <div v-if="song.singers.length" class="detail-show-singer-common">
-                  <div v-for="(singer, index) in song.singers" class="detail-show-singer-common">
-                    <div v-if="singer.role_id" class="detail-show-singer-common detail-show-singer-2">
-                      {{ singer.role.role }}
-                      <div class="detail-show-singer-small">
-                        (by {{ singer.role.player }})
+                <div class="detail-show-singer-common detail-show-singer-2">                
+                  <div v-if="song.singers.length" class="detail-show-singer-common">
+                    <div v-for="(singer, index) in song.singers" class="detail-show-singer-common">
+                      <div v-if="singer.role_id" class="detail-show-singer-common detail-show-singer-2">
+                        {{ singer.role.role }}
+                        <div class="detail-show-singer-small">
+                          (by {{ singer.role.player }})
+                        </div>
                       </div>
-                    </div>
-                    <div v-else-if="singer.role_group_id">
-                      {{ singer.role_group.name }}
-                    </div>
-                    <div v-else>
-                      {{ singer.name }}
-                    </div>
+                      <div v-else-if="singer.role_group_id">
+                        {{ singer.role_group.name }}
+                      </div>
+                      <div v-else>
+                        {{ singer.name }}
+                      </div>
 
-                    <div v-if="index !== song.singers.length - 1">・</div>
-                  </div>
-                </div>          
-              </div>】</div>
+                      <div v-if="index !== song.singers.length - 1">・</div>
+                    </div>
+                  </div> 
+                  <div>】</div> 
+                </div>        
+              </div>
+            </div>
             <div class="detail-show-song-impression" v-if="song.impression">{{ song.impression }}</div>
           </div>
         </div>
       </div>
 
       <!-- その他 -->
-      <div class="detail-show-others-area" v-if="DVD.others.length">
-        <div class="detail-show-header">その他</div>
+      <div class="detail-show-others-area detail-show-other-flex" v-if="DVD.others.length">
+        <div class="detail-show-header detail-show-other-width">その他</div>
         <div class="detail-show-others-block">
-          <div v-for="other in DVD.others" class="detail-show-other-area">
-            <div class="detail-show-header" v-if="other.title">{{ other.title }}</div>
-            <div class="detail-show-other-area" v-if="other.impression">{{ other.impression }}</div>
+          <div v-for="other in DVD.others" class="detail-show-other-area detail-show-other-flex">
+            <div class="detail-show-header detail-show-other-width" v-if="other.title">{{ other.title }}</div>
+            <div class="detail-show-other-area detail-show-other-width" v-if="other.impression">{{ other.impression }}</div>
           </div>
-        </div>        
+        </div>
       </div>
 
       <!-- 貸す -->
-      <div class="detail-show-rents-area" v-if="DVD.rents.length">
-        <div class="detail-show-header">貸出記録</div>
+      <div class="detail-show-rents-area detail-show-other-flex" v-if="DVD.rents.length">
+        <div class="detail-show-header detail-show-other-width">貸出記録</div>
         <div class="detail-show-rents-block">
           <div class="detail-show-rent-area" v-for="rent in DVD.rents">
             <div class="detail-show-rent-name">{{ rent.name }}</div>
@@ -784,14 +788,14 @@
                               <!-- フォームボタン -->
                               <div class="add-add-minus-button-area add-add-minus-button-area-small">
                                 <div :ref="'detail_minus_button_area_singers_form_' + songIndex" class="add-minus-button-area add-minus-button-area-small" style="visibility: hidden">
-                                  <button type="button" class="add-add-button add-add-button-small" @click="minusSingerForm(songIndex, 'detail_minus_button_area_singers_form_' + songIndex, 'detail_add_button_area_singers_form_' + songIndex)">
+                                  <button type="button" class="add-add-button add-add-button-small" @click="minusSingerForm(songIndex)">
                                     <div class="add-add-button-icon add-add-button-icon-small">
                                       <i class="fa-solid fa-minus"></i>
                                     </div>
                                   </button>
                                 </div>
                                 <div :ref="'detail_add_button_area_singers_form_' + songIndex" class="add-add-button-area add-minus-button-area-small">
-                                  <button type="button" class="add-add-button add-add-button-small" @click="plusSingerForm(songIndex, 'detail_minus_button_area_singers_form_' + songIndex, 'detail_add_button_area_singers_form_' + songIndex)">
+                                  <button type="button" class="add-add-button add-add-button-small" @click="plusSingerForm(songIndex)">
                                     <div class="add-add-button-icon add-add-button-icon-small">
                                       <i class="fa-solid fa-plus"></i>
                                     </div>
@@ -1356,12 +1360,45 @@ export default {
       this.editDVD.category = this.originalDVD.category;
 
       this.originalEditDVD = JSON.parse(JSON.stringify(this.editDVD));
+
       this.showButton();
     },
 
     // 描写後
     showButton() {
       this.$nextTick(() => {
+        const screenWidth = document.documentElement.clientWidth;
+        let mainRem = 0;
+        if(screenWidth <= 767) {
+          mainRem = this.convertRem2Px(2) * 2;
+        } else {
+          mainRem = this.convertRem2Px(4) * 2;
+        }
+
+        // 役感想
+        if(this.$refs.detail_show_role_impression_headers) {
+          this.$refs.detail_show_role_impression_headers.forEach(header => {
+            if(header.clientWidth + mainRem >= screenWidth) {
+              header.classList.add('detail-show-role-impression-detail-header');
+              header.children[0].classList.add('detail-show-role-impression-detail-player-brackets');
+            }
+          });
+        }        
+
+        // 歌タイトル
+        if(this.$refs.detail_song_titles) {
+          this.$refs.detail_song_titles.forEach(song => {
+            if(song.clientWidth + mainRem >= screenWidth) {
+              song.classList.add('detail-show-singer-title-area');
+              song.children[1].classList.add('detail-show-singer-column-1');
+              song.children[1].children[1].classList.add('detail-show-singer-column-2');
+              if(song.children[1].children[1].clientWidth + mainRem >= screenWidth) {
+                song.children[1].children[1].children[0].classList.add('detail-show-singer-column-3');
+              }
+            }
+          });
+        }
+
         if(!this.editDVD.locations.length) {
           this.plusLocationForm();
         }
@@ -1448,26 +1485,6 @@ export default {
             this.$refs.detail_minus_button_area_songs_form.style.visibility = 'hidden';
           }
         }
-
-        this.editDVD.songs.forEach((song, index) => {
-          if(!song.singers.length) {
-            this.plusSingerForm(index);
-          } else {
-            const addButton = 'detail_add_button_area_singers_form_' + index;
-            const minusButton = 'detail_minus_button_area_singers_form_' + index;
-            if(song.singers.length < 10) {
-              this.$refs[addButton].style.visibility = 'visible';
-            } else {
-              this.$refs[addButton].style.visibility = 'hidden';
-            }
-            
-            if(song.singers.length > 1) {
-              this.$refs[minusButton].style.visibility = 'visible';
-            } else {
-              this.$refs[minusButton].style.visibility = 'hidden';
-            }
-          }
-        });
         
         if(!this.editDVD.others.length) {
           this.plusOtherForm();
@@ -1487,8 +1504,32 @@ export default {
 
         // ふりがなのinput要素のidは省略可能
         autokana = AutoKana.bind('#detail_title');
-      });
-      
+
+        // 歌フォーム描写後
+        this.$nextTick(() => {
+          this.editDVD.songs.forEach((song, index) => {
+            const addButton = 'detail_add_button_area_singers_form_' + index;
+            const minusButton = 'detail_minus_button_area_singers_form_' + index;
+            if(song.singers.length < 10) {
+              this.$refs[addButton].style.visibility = 'visible';
+            } else {
+              this.$refs[addButton].style.visibility = 'hidden';
+            }
+            
+            if(song.singers.length > 1) {
+              this.$refs[minusButton].style.visibility = 'visible';
+            } else {
+              this.$refs[minusButton].style.visibility = 'hidden';
+            }
+          });
+        });
+      });      
+    },
+
+    // remからpx
+    convertRem2Px(rem) {
+      const fontSize = getComputedStyle(document.documentElement).fontSize;
+      return rem * parseFloat(fontSize);
     },
 
     // 出演者纏めて
@@ -2588,12 +2629,15 @@ export default {
     },
 
     // 歌手フォーム
-    plusSingerForm(songIndex, minusButton, addButton) {
+    plusSingerForm(songIndex) {
       if(this.editDVD.songs[songIndex].singers.length < 10) {
         // 追加
         this.editDVD.songs[songIndex].singers.push({
           order: '', type: 'role', role_key: '', role_id: null, group_key: '', group_id: null, name: null
         });
+
+        const addButton = 'detail_add_button_area_singers_form_' + songIndex;
+        const minusButton = 'detail_minus_button_area_singers_form_' + songIndex;
 
         if(this.editDVD.songs[songIndex].singers.length === 2) {
           this.$refs[minusButton].style.visibility = 'visible';
@@ -2602,10 +2646,13 @@ export default {
         }
       }
     },
-    minusSingerForm(songIndex, minusButton, addButton) {
+    minusSingerForm(songIndex) {
       if(this.editDVD.songs[songIndex].singers.length > 1) {
         // 削除
         this.editDVD.songs[songIndex].singers.pop();
+
+        const addButton = 'detail_add_button_area_singers_form_' + songIndex;
+        const minusButton = 'detail_minus_button_area_singers_form_' + songIndex;
 
         if(this.editDVD.songs[songIndex].singers.length === 1){
           this.$refs[minusButton].style.visibility = 'hidden';
