@@ -1375,6 +1375,16 @@
 .search-refine-input {
   min-width: 100%;
 }
+.search-refine-mode-set-area {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.search-refine-mode-set-block {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem; 
+}
 .search-submit-button-area {
   display: flex;
   justify-content: flex-end;
@@ -1926,7 +1936,7 @@
   .list-grid-duration {
     font-size: 0.5rem;
   }
-  
+
 
   /* 登録 */
   .add-block {
@@ -1968,14 +1978,6 @@
   .detail-show-other-width {
     width: 100%;
   }
-  .detail-show-role-impression-detail-header {
-    flex-direction: column;
-    width: 100%;
-  }
-  .detail-show-role-impression-detail-player-brackets {
-    justify-content: flex-end;
-    width: 100%;
-  }
   /* 写真拡大 */
   .photo-overlay {
     overflow-y: hidden;
@@ -1983,15 +1985,22 @@
   }
 }
 
+/* 配役 */
+@media only screen and (max-width: 900px) {
+  .detail-show-role-role {
+    min-width: 50%;
+  }
+}
+
 /* 検索画面 */
-@media only screen and (min-device-height: 790px) {
+@media only screen and (min-height: 790px) {
   /* 検索 */
   .overlay-custom {
     align-items: center;  
   }
 }
 
-@media only screen and (max-device-width: 470px) {
+@media only screen and (max-width: 470px) {
   /* 検索 */
   .search-sort-set-area {
     flex-direction: column;
@@ -2004,4 +2013,34 @@
   .search-refine-duration-date-after-area {
     width: 100%;
   }
+}
+
+/* 役感想 */
+.detail-show-role-impression-detail-header {
+  flex-direction: column;
+  width: 100%;
+}
+.detail-show-role-impression-detail-player-brackets {
+  justify-content: flex-end;
+  width: 100%;
+}
+
+/* 歌 */
+.detail-show-singer-title-area {
+  width: 100%;
+}
+.detail-show-singer-column-1 {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.detail-show-singer-column-2 {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  width: 100%;
+}
+.detail-show-singer-column-3 {
+  display: flex;
+  flex-direction: column;
 }

@@ -109,7 +109,7 @@
                     <input type="checkbox" id="search_refine_durationTo" class="search-refine-duration-no" v-model="searchContentDVD.refine.durationTo.no">
                     <label for="search_refine_durationTo">beforeなし</label>                
                   </div>
-                </div>              
+                </div>
               </div>
 
               <div class="search-refine-choice-area">
@@ -206,12 +206,16 @@
             <div class="search-refine-mode-area">
               <div class="search-header">モード</div>
               <div class="search-refine-mode-set-area">
-                <input type="radio" id="search_refine_mode_and" class="search-refine-mode" v-model="searchContentDVD.refine.mode" value=1>
-                <label for="search_refine_mode_and">and</label>
+                <div class="search-refine-mode-set-block">
+                  <input type="radio" id="search_refine_mode_and" class="search-refine-mode" v-model="searchContentDVD.refine.mode" value=1>
+                  <label for="search_refine_mode_and">and</label>
+                </div>                
 
-                <input type="radio" id="search_refine_mode_no" class="search-refine-mode" v-model="searchContentDVD.refine.mode" value=0>
-                <label for="search_refine_mode_no">or</label>
-              </div>            
+                <div class="search-refine-mode-set-block">
+                  <input type="radio" id="search_refine_mode_no" class="search-refine-mode" v-model="searchContentDVD.refine.mode" value=0>
+                  <label for="search_refine_mode_no">or</label>
+                </div>
+              </div>
             </div>
           </div>
         
