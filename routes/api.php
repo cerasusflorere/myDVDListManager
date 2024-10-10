@@ -59,3 +59,6 @@ Route::post('/DVD/{id}', 'App\Http\Controllers\DVDController@update')->name('DVD
 
 // 返却更新
 Route::post('/return', 'App\Http\Controllers\RentController@update')->name('rent.update');
+
+// 貸出まとめて更新
+Route::post('/rentEdit', 'App\Http\Controllers\RentController@updateAll')->name('rent.updateAll');

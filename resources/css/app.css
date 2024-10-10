@@ -786,6 +786,7 @@
     height: 2rem;
     padding: 0rem 1rem;
     border: 0.25rem solid #ffffad;
+    border-radius: 1rem;
     text-align: center;
   }
   .add-others-input:focus {
@@ -1715,7 +1716,33 @@
   flex-direction: row;
   align-items: baseline;
   width: 100%;
-  gap: 0.5rem;
+  gap: 1rem;
+}
+.detail-show-rent-start {
+  width: 6rem;
+}
+.detail-edit-rents-width {
+  width: 45rem;
+}
+.detail-edit-rent-name-cell {
+  width: 10rem;
+}
+.detail-edit-rent-date-cell {
+  width: 15rem;
+}
+.detail-edit-rent-button-cell {
+  width: 5rem;
+}
+.detail-edit-rents-body-cell {
+  vertical-align: top;
+  height: 6.5rem;
+  padding: 0.5rem;
+}
+.detail-edit-rent-input {
+  width: 90%;
+}
+.detail-edit-rents-button {
+  margin: auto;
 }
 
 /* ダイアログ */

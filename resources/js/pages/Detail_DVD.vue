@@ -258,6 +258,7 @@
           <div class="detail-show-rent-area" v-for="rent in DVD.rents">
             <div class="detail-show-rent-name">{{ rent.name }}</div>
             <div class="detail-show-rent-start">{{ rent.start_date }}</div>
+            <div class="detail-show-rent-start">{{ rent.return_date }}</div>
             <div class="detail-show-rent-flag" v-if="rent.flag"><i class="fas fa-check fa-fw"></i></div>
           </div>
         </div>        
@@ -605,8 +606,8 @@
                         <textarea class="add-role-impressions-input add-role-impressions-impression" v-model="roleImpression.impression" placeholder="どうだった？"></textarea>  
                       </div>
                       <div class="add-roles-impressions-cell add-role-impressions-body-cell add-role-impressions-cell-photo">
-                        <label :for="'add_role_impressions_photo_' + index" class="add-role-impressions-input add-role-impressions-photo-button">選択</label>
-                        <input type="file" :id="'add_role_impressions_photo_' + index" class="add-role-impressions-photo" @change="previewFileRoleImpression(index, $event)">
+                        <label :for="'detail_role_impressions_photo_' + index" class="add-role-impressions-input add-role-impressions-photo-button">選択</label>
+                        <input type="file" :id="'detail_role_impressions_photo_' + index" class="add-role-impressions-photo" @change="previewFileRoleImpression(index, $event)">
                         <div class="add-role-impressions-photo-area">
                           <!-- 写真 -->
                           <div v-if="roleImpression.photos[0]">
@@ -898,8 +899,8 @@
                 写真
               </div>
 
-              <label for="add_photo" class="add-photo-button">選択</label>
-              <input type="file" id="add_photo" class="add-photo" @change="previewFile">
+              <label for="detail_photo" class="add-photo-button">選択</label>
+              <input type="file" id="detail_photo" class="add-photo" @change="previewFile">
               <div class="add-photo-preview-area">
                 <!-- 写真 -->
                 <div v-if="editDVD.photos[0]">
@@ -920,7 +921,44 @@
               </div>                      
 
               <div v-if="errors.photo.pres" class="add-error-message-photo">{{ errors.photo.pres }}</div>
-            </div>      
+            </div>
+
+            <!-- 貸出記録 -->
+            <div class="add-area add-others-area" v-if="editDVD.rents.length">
+              <div class="add-header add-header-others">貸出記録</div>
+              <!-- 表 -->
+              <div class="add-others-box detail-edit-rents-width">
+                <!-- ヘッダー -->
+                <div class="add-others-headerline detail-edit-rents-width">
+                  <div class="add-others-cell add-others-header-cell detail-edit-rent-name-cell">貸している人</div>
+                  <div class="add-others-cell add-others-header-cell detail-edit-rent-date-cell">いつから</div>
+                  <div class="add-others-cell add-others-header-cell detail-edit-rent-date-cell">いつまで</div>
+                  <div class="add-others-cell add-others-header-cell detail-edit-rent-button-cell"></div>
+                </div>
+                
+                <!-- 中身 -->
+                <div class="add-others-bodyblock">
+                  <div class="add-others-bodyline" v-for="(rent, index) in editDVD.rents">
+                    <div class="add-others-cell detail-edit-rents-body-cell detail-edit-rent-name-cell">
+                      <input type="text" class="add-others-input detail-edit-rent-input" v-model="rent.name">
+                    </div>
+                    <div class="add-others-cell detail-edit-rents-body-cell detail-edit-rent-date-cell">
+                      <input type="date" class="add-others-input detail-edit-rent-input" v-model="rent.start_date">
+                    </div>                    
+                    <div class="add-others-cell detail-edit-rents-body-cell detail-edit-rent-date-cell">
+                      <input type="date" class="add-others-input detail-edit-rent-input" v-model="rent.return_date">
+                    </div>
+                    <div class="add-others-cell detail-edit-rents-body-cell detail-edit-rent-button-cell">
+                      <button type="button" class="add-add-button detail-edit-rents-button" @click="detailRents(index)">
+                        <div class="add-add-button-icon">
+                          <i class="fa-solid fa-minus"></i>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>               
+              </div>
+            </div>
 
           </div>
 
@@ -1072,6 +1110,7 @@ export default {
         songs: [],
         others: [],
         photos: [],
+        rents: [],
         format: 1,
         official: true,
         special: false,
@@ -1093,6 +1132,10 @@ export default {
         },
         error: null,
       },
+
+      // 編集要否
+      flag: 0,
+      flagRent: 0,
 
       // message
       showContent_message: false,
@@ -1313,7 +1356,6 @@ export default {
       this.editDVD.histories.sort((a, b) => a.order - b.order);
       
       this.originalDVD.songs.forEach((song, index) => {
-        const key = this.getUniqueStr();
         this.editDVD.songs[index] = new Object();
         this.editDVD.songs[index].id = song.id;
         this.editDVD.songs[index].order = song.order;
@@ -1350,6 +1392,7 @@ export default {
         this.editDVD.photos[0] = new Object();
         this.editDVD.photos[0].photo = 0;
       }
+      this.editDVD.rents = this.originalDVD.rents ? this.originalDVD.rents : null;
 
       this.editDVD.format = this.originalDVD.format;
       this.editDVD.official = this.originalDVD.official ? true : false;
@@ -1631,7 +1674,7 @@ export default {
     resetPhotoRoleImpression: function(index) {
       this.editDVD.roleImpressionList[index].photos[0].preview = null;
       this.editDVD.roleImpressionList[index].photos[0].photo = '';
-      document.getElementById('add_role_impressions_photo_' + index).value = null;
+      document.getElementById('detail_role_impressions_photo_' + index).value = null;
     },
 
     // 写真を見せない
@@ -1686,12 +1729,16 @@ export default {
     resetPhoto() {
       this.editDVD.photos[0].preview = null;
       this.editDVD.photos[0].photo = 0;
-      document.getElementById('add_photo').value = null;
+      document.getElementById('detail_photo').value = null;
+    },
+
+    // 貸出記録抹消
+    detailRents(index) {
+      this.editDVD.rents.splice(index, 1);
     },
 
     // 編集確認
     confirmEditData() {
-      let flag = 0; // 0なら変更なし、1は変更あり（0なら通す）
       let patternNumber = /^([0-9]\d*|0)$/; // 0~9の数字かどうか
       let patternAlf = /^([A-Z]\d*)$/; // A~Zのアルファベットかどうか*いる
       let patternKanaHira = /^[ぁ-んァ-ンヴーｧ-ﾝﾞﾟ\-]+$/u;
@@ -1701,141 +1748,141 @@ export default {
       if(!this.editDVD.title || !this.editDVD.kana) {
         return false;
       }      
-
+      
       if(this.originalEditDVD.title !== this.editDVD.title || this.originalEditDVD.duration_from !== this.editDVD.duration_from || this.originalEditDVD.duration_to !== this.editDVD.duration_to
          || this.originalEditDVD.story !== this.editDVD.story || this.originalEditDVD.impression !== this.editDVD.impression || this.originalEditDVD.author !== this.editDVD.author || this.originalEditDVD.lyricist !== this.editDVD.lyricist || this.originalEditDVD.choreo !== this.editDVD.choreo || this.originalEditDVD.director !== this.editDVD.director
          || this.originalEditDVD.format !== this.editDVD.format || this.originalEditDVD.official !== this.originalEditDVD.official
          || this.originalEditDVD.special !== this.originalEditDVD.special || this.originalEditDVD.url_DVD !== this.editDVD.url_DVD || this.originalEditDVD.url_movie !== this.editDVD.url_movie || this.originalEditDVD.url_youtube !== this.editDVD.url_youtube || this.originalEditDVD.category !== this.editDVD.category
       ) {
-        flag = 1;
+        this.flag = 1;
       }
-
+      
       this.editDVD.locations = this.editDVD.locations.filter(location => location.prefecture ? location : null);
       for(let i = 0; i < this.editDVD.locations.length; i++) {
         this.editDVD.locations[i].order = i + 1;
       }
-      if(!flag && this.originalEditDVD.locations.length === this.editDVD.locations.length) {
+      if(!this.flag && this.originalEditDVD.locations.length === this.editDVD.locations.length) {
         this.originalEditDVD.locations.forEach((location, index)  => {
           if(location.id !== this.editDVD.locations[index].id || location.order !== this.editDVD.locations[index].order || location.prefecture !== this.editDVD.locations[index].prefecture || location.theater !== this.editDVD.locations[index].theater) {
-            flag = 1;
+            this.flag = 1;
           }
         });
       } else {
-        flag = 1;
+        this.flag = 1;
       }
       if(!this.editDVD.locations.length) {
         this.plusLocationForm();
       }
-
+     
       this.editDVD.costumers = this.editDVD.costumers.filter(costumer => costumer.name ? costumer : null);
       for(let i = 0; i < this.editDVD.costumers.length; i++) {
         this.editDVD.costumers[i].order = i + 1;
       }
-      if(!flag && this.originalEditDVD.costumers.length === this.editDVD.costumers.length) {
+      if(!this.flag && this.originalEditDVD.costumers.length === this.editDVD.costumers.length) {
         this.originalEditDVD.costumers.forEach((costumer, index)  => {
           if(costumer.id !== this.editDVD.costumers[index].id || costumer.order !== this.editDVD.costumers[index].order || costumer.name !== this.editDVD.costumers[index].name ) {
-            flag = 1;
+            this.flag = 1;
           }
         });
       } else {
-        flag = 1;
+        this.flag = 1;
       }
       if(!this.editDVD.costumers.length) {
         this.plusCostumerForm();
       }
-      
+            
       this.editDVD.groups = this.editDVD.groups.filter(group => group.name ? group : null);
       this.optionGroups = this.optionGroups.filter(group => group.name ? group : null);
       for(let i = 0; i < this.editDVD.groups.length; i++) {
         this.editDVD.groups[i].order = i + 1;
       }
-      if(!flag && this.originalEditDVD.groups.length === this.editDVD.groups.length) {
+      if(!this.flag && this.originalEditDVD.groups.length === this.editDVD.groups.length) {
         this.originalEditDVD.groups.forEach((group, index)  => {
           if(group.id !== this.editDVD.groups[index].id || group.order !== this.editDVD.groups[index].order || group.name !== this.editDVD.groups[index].name ) {
-            flag = 1;
+            this.flag = 1;
           }
         });
       } else {
-        flag = 1;
+        this.flag = 1;
       }
       if(!this.editDVD.groups.length) {
         this.plusGroupForm();
       }
-
+      
       this.editDVD.playerList = this.editDVD.playerList.filter(player => player.player ? player : null);
       this.optionRoles = this.optionRoles.filter(role => role.role ? role : null);
       for(let i = 0; i < this.editDVD.playerList.length; i++) {
         this.editDVD.playerList[i].order = i + 1;
       }
-      if(!flag && this.originalEditDVD.playerList.length === this.editDVD.playerList.length) {
+      if(!this.flag && this.originalEditDVD.playerList.length === this.editDVD.playerList.length) {
         this.originalEditDVD.playerList.forEach((player,index) => {
           if(player.group_key !== this.editDVD.playerList[index].group_key || player.group_id !== this.editDVD.playerList[index].group_id || player.id !== this.editDVD.playerList[index].id
             || player.order !== this.editDVD.playerList[index].order || player.member !== this.editDVD.playerList[index].member || player.player !== this.editDVD.playerList[index].player || player.role !== this.editDVD.playerList[index].role
           ){
-            flag = 1;
+            this.flag = 1;
           }
         });
       } else {
-        flag = 1;
+        this.flag = 1;
       }
       if(!this.editDVD.playerList.length) {
         this.plusPlayerForm();
       }
-
+      
       this.editDVD.roleImpressionList = this.editDVD.roleImpressionList.filter(roleImpression => roleImpression.impression ? roleImpression : null);
       for(let i = 0; i < this.editDVD.roleImpressionList.length; i++) {
         this.editDVD.roleImpressionList[i].order = i + 1;
       }
-      if(!flag && this.originalEditDVD.roleImpressionList.length === this.editDVD.roleImpressionList.length) {
+      if(!this.flag && this.originalEditDVD.roleImpressionList.length === this.editDVD.roleImpressionList.length) {
         this.originalEditDVD.roleImpressionList.forEach((role,index) => {
           if(role.impression !== this.editDVD.roleImpressionList[index].impression || role.role_key !== this.editDVD.roleImpressionList[index].role_key || role.role_id !== this.editDVD.roleImpressionList[index].role_id){
-            flag = 1;
+            this.flag = 1;
           } else {
             role.photos.forEach((photo, index2) => {
               if(photo.photo !== this.editDVD.roleImpressionList[index].photos[index2].photo) {
-                flag = 1;
+                this.flag = 1;
               }
             });
           }
         });
       } else {
-        flag = 1;
+        this.flag = 1;
       }
       if(!this.editDVD.roleImpressionList.length) {
         this.plusRoleImpressionForm();
       }
-
+      
       this.editDVD.photos = this.editDVD.photos.filter(photo => photo.photo || photo.photo === 0 ? photo : null);
       if(!this.editDVD.photos.length) {
         this.editDVD.photos[0].photo = 0;
       }
-      if(!flag && this.originalEditDVD.photos.length === this.editDVD.photos.length) {
+      if(!this.flag && this.originalEditDVD.photos.length === this.editDVD.photos.length) {
         this.originalEditDVD.photos.forEach((photo, index) => {
           if(photo.photo !== this.editDVD.photos[index].photo) {
-            flag = 1;
+            this.flag = 1;
           }
         });
       } else {
-        flag = 1;
+        this.flag = 1;
       }
-
+      
       this.editDVD.histories = this.editDVD.histories.filter(history => history.title || history.history ? history : null);
       for(let i = 0; i < this.editDVD.histories.length; i++) {
         this.editDVD.histories[i].order = i + 1;
       }
-      if(!flag && this.originalEditDVD.histories.length === this.editDVD.histories.length) {
-        this.originalEditDVD.histories.forEach((other, index) => {
+      if(!this.flag && this.originalEditDVD.histories.length === this.editDVD.histories.length) {
+        this.originalEditDVD.histories.forEach((history, index) => {
           if(history.id !== this.editDVD.histories[index].id || history.order !== this.editDVD.histories[index].order || history.title !== this.editDVD.histories[index].title || history.history !== this.editDVD.histories[index].history ) {
-            flag = 1;
+            this.flag = 1;
           }
         });
       } else {
-        flag = 1;
+        this.flag = 1;
       }
       if(!this.editDVD.histories.length) {
         this.plusHistoryForm();
       }
-
+      
       this.editDVD.songs = this.editDVD.songs.filter(song => song.title ? song : null);
       for(let i = 0; i < this.editDVD.songs.length; i++) {
         this.editDVD.songs[i].order = i + 1;
@@ -1844,36 +1891,36 @@ export default {
           this.editDVD.songs[i].singers[k].order = k + 1;
         }
       }
-      if(!flag && this.originalEditDVD.songs.length === this.editDVD.songs.length) {
+      if(!this.flag && this.originalEditDVD.songs.length === this.editDVD.songs.length) {
         this.originalEditDVD.songs.forEach((song, index) => {
           if(song.id !== this.editDVD.songs[index].id || song.order !== this.editDVD.songs[index].order || song.title !== this.editDVD.songs[index].title || song.impression !== this.editDVD.songs[index].impression) {
-            flag = 1;
+            this.flag = 1;
           } else {
             if(song.singers.length === this.editDVD.songs[index].singers.length) {
               song.singers.forEach((singer, index2) => {
                 if(singer.id !== this.editDVD.songs[index].singers[index2].id || singer.order !== this.editDVD.songs[index].singers[index2].order || singer.type !== this.editDVD.songs[index].singers[index2].type) {
-                  flag = 1;
+                  this.flag = 1;
                 } else if(singer.type === 'role') {
                   if(singer.role_key !== this.editDVD.songs[index].singers[index2].role_key || singer.role_id !== this.editDVD.songs[index].singers[index2].role_id) {
-                    flag = 1;
+                    this.flag = 1;
                   }
                 } else if(singer.type === 'group') {
                   if(singer.group_key !== this.editDVD.songs[index].singers[index2].group_key || singer.group_id !== this.editDVD.songs[index].singers[index2].group_id) {
-                    flag = 1;
+                    this.flag = 1;
                   }
                 } else {
                   if(singer.name !== this.editDVD.songs[index].singers[index2].name) {
-                    flag = 1;
+                    this.flag = 1;
                   }
                 }
               });
             } else {
-              flag = 1;
+              this.flag = 1;
             }            
           }
         });
       } else {
-        flag = 1;
+        this.flag = 1;
       }
       if(!this.editDVD.songs.length) {
         this.plusSongForm();
@@ -1883,24 +1930,24 @@ export default {
           this.plusSingerForm(index);
         }
       });
-
+      
       this.editDVD.others = this.editDVD.others.filter(other => other.title || other.impression ? other : null);
       for(let i = 0; i < this.editDVD.others.length; i++) {
         this.editDVD.others[i].order = i + 1;
       }
-      if(!flag && this.originalEditDVD.others.length === this.editDVD.others.length) {
+      if(!this.flag && this.originalEditDVD.others.length === this.editDVD.others.length) {
         this.originalEditDVD.others.forEach((other, index) => {
           if(other.id !== this.editDVD.others[index].id || other.order !== this.editDVD.others[index].order || other.title !== this.editDVD.others[index].title || other.impression !== this.editDVD.others[index].impression) {
-            flag = 1;
+            this.flag = 1;
           }
         });
       } else {
-        flag = 1;
+        this.flag = 1;
       }
       if(!this.editDVD.others.length) {
         this.plusOtherForm();
       }
-
+      
       // タイトル（ふりがな）正規表現
       kanas = [...this.editDVD.kana];
       kanas.forEach(a => {
@@ -1923,13 +1970,19 @@ export default {
           }
         }
       });
-
-      if(!flag && this.originalEditDVD.kana !== kana) {
-        flag = 1;
+      
+      this.editDVD.rents = this.editDVD.rents.filter(rent => rent.name ? rent : null);
+      if(this.originalEditDVD.rents.length === this.editDVD.rents.length) {
+        this.originalEditDVD.rents.forEach((rent, index) => {
+          if(rent.id !== this.editDVD.rents[index].id || rent.name !== this.editDVD.rents[index].name || rent.start_date !== this.editDVD.rents[index].start_date || rent.return_date !== this.editDVD.rents[index].return_date ) {
+            this.flagRent = 1;
+          }
+        });
+      } else {
+        this.flagRent = 1;
       }
 
-
-      if(!flag) {
+      if(!this.flag && !this.flagRent) {
         this.showContent_message = true;
         this.dialog_message = '元のデータと同じです。編集してください。';
       } else {
@@ -1959,262 +2012,302 @@ export default {
       this.dialog_confirm = ''
     },
     // データ送信
-    async editData() {
-      let patternNumber = /^([0-9]\d*|0)$/; // 0~9の数字かどうか
-      let patternAlf = /^([A-Z]\d*)$/; // A~Zのアルファベットかどうか*いる
-      let patternKanaHira = /^[ぁ-んァ-ンヴーｧ-ﾝﾞﾟ\-]+$/u;
-      const formData = new FormData();
-      let kanas;
-      let kana = '';
-      let count = 0;
-      
+    async editData() {      
       if(!this.editDVD.title || !this.editDVD.kana) {
         return false;
       }
 
-      // タイトル（ふりがな）正規表現
-      kanas = [...this.editDVD.kana];
-      kanas.forEach(a => {
-        const number = this.Zenkaku2hankaku_number(a);
-        if(patternNumber.test(number)){
-          // 数字だった
-          kana = kana + number;
-        }else{
-          // 数字じゃなかった=文字だった
-          const alf = this.Zenkaku2hankaku_alf(number);
-          if(patternAlf.test(alf.toUpperCase())){
-            // アルファベットだった
-            kana = kana + alf.toUpperCase();
-          }else if(patternKanaHira.test(alf)){
-            // アルファベットじゃなかった=ひらがなかカタカナだった
-            const str = this.hunkaku2Zenkaku_str(alf);
-            kana = kana + this.Hira2Kana(str);
-          }else if(alf == "-" || alf == " "){
-            kana = kana + alf;
+      if(this.flag) {
+        let patternNumber = /^([0-9]\d*|0)$/; // 0~9の数字かどうか
+        let patternAlf = /^([A-Z]\d*)$/; // A~Zのアルファベットかどうか*いる
+        let patternKanaHira = /^[ぁ-んァ-ンヴーｧ-ﾝﾞﾟ\-]+$/u;
+        const formData = new FormData();
+        let kanas;
+        let kana = '';
+        let count = 0;
+
+        // タイトル（ふりがな）正規表現
+        kanas = [...this.editDVD.kana];
+        kanas.forEach(a => {
+          const number = this.Zenkaku2hankaku_number(a);
+          if(patternNumber.test(number)){
+            // 数字だった
+            kana = kana + number;
+          }else{
+            // 数字じゃなかった=文字だった
+            const alf = this.Zenkaku2hankaku_alf(number);
+            if(patternAlf.test(alf.toUpperCase())){
+              // アルファベットだった
+              kana = kana + alf.toUpperCase();
+            }else if(patternKanaHira.test(alf)){
+              // アルファベットじゃなかった=ひらがなかカタカナだった
+              const str = this.hunkaku2Zenkaku_str(alf);
+              kana = kana + this.Hira2Kana(str);
+            }else if(alf == "-" || alf == " "){
+              kana = kana + alf;
+            }
           }
-        }
-      });
-      
-      formData.append('title', this.editDVD.title);
-      formData.append('kana', kana);
-      formData.append('duration_from', this.editDVD.duration_from);
-      formData.append('duration_to', this.editDVD.duration_to);
-      
-      this.editDVD.locations.forEach(location => {
-        if(location.prefecture){
-          formData.append('location[' + count + '][id]', location.id ? location.id : '');
-          formData.append('location[' + count + '][order]', location.order);
-          formData.append('location[' + count + '][prefecture]', location.prefecture);
-          formData.append('location[' + count + '][theater]', location.theater);
-          count++;
-        }
-      });
-      count = 0;
-      
-      formData.append('impression', this.editDVD.impression);
-      formData.append('story', this.editDVD.story);
-      formData.append('author', this.editDVD.author ? this.editDVD.author.replace(/\s+/g,'') : '');
-      formData.append('costumer', this.editDVD.costumer ? this.editDVD.costumer.replace(/\s+/g,'') : '');      
-      
-      this.editDVD.costumers.forEach(costumer => {
-        if(costumer.name){
-          formData.append('costumer[' + count + '][id]', costumer.id ? costumer.id : '');
-          formData.append('costumer[' + count + '][order]', costumer.order);
-          formData.append('costumer[' + count + '][name]', costumer.name);
-          count++;
-        }
-      });
-      count = 0;
-      
-      formData.append('lyricist', this.editDVD.lyricist ? this.editDVD.lyricist.replace(/\s+/g,'') : '');
-      formData.append('choreo', this.editDVD.choreo ? this.editDVD.choreo.replace(/\s+/g,'') : '');
-      formData.append('director', this.editDVD.director ? this.editDVD.director.replace(/\s+/g,'') : '');
-      
-      this.editDVD.groups.forEach(group => {
-        if(group.name){
-          if(group.name.replace(/\s+/g,'')) {
-            formData.append('group[' + count + '][id]', group.id ? group.id : '');
-            formData.append('group[' + count + '][key]', group.key);
-            formData.append('group[' + count + '][order]', group.order);
-            formData.append('group[' + count + '][name]', group.name);
+        });
+        
+        formData.append('title', this.editDVD.title);
+        formData.append('kana', kana);
+        formData.append('duration_from', this.editDVD.duration_from);
+        formData.append('duration_to', this.editDVD.duration_to);
+        
+        this.editDVD.locations.forEach(location => {
+          if(location.prefecture){
+            formData.append('location[' + count + '][id]', location.id ? location.id : '');
+            formData.append('location[' + count + '][order]', location.order);
+            formData.append('location[' + count + '][prefecture]', location.prefecture);
+            formData.append('location[' + count + '][theater]', location.theater);
             count++;
-          }            
-        }
-      });
-      count = 0;
-      
-      this.editDVD.playerList.forEach(player => {
-        if(player.player){
-          if(player.player.replace(/\s+/g,'')) {
-            const role = this.optionRoles.find(role => role.role == player.role);
-            let role_impression;
-            if(role) {
-              role_impression = this.editDVD.roleImpressionList.find(roleImpression => roleImpression.role_key == role.key);
-            }
-            formData.append('role[' + count + '][id]', player.id ? player.id : '');
-            formData.append('role[' + count + '][order]', player.order);
-            formData.append('role[' + count + '][group_key]', player.group_key ? player.group_key : '');
-            formData.append('role[' + count + '][role]', player.role ? player.role : '');
-            formData.append('role[' + count + '][key]', player.key);
-            formData.append('role[' + count + '][player]', player.player.replace(/\s+/g,''));
-            formData.append('role[' + count + '][member]', player.member ? 1 : 0);
-            formData.append('role[' + count + '][impression]', role_impression ? role_impression.impression ? role_impression.impression : '' : '');
-            if(role_impression) {
-              let count2 = 0;
-              role_impression.photos.forEach(photo => {
-                if(photo) {
-                  formData.append('role[' + count + '][photo][' + count2 + '][id]', photo.id ? photo.id : '');
-                  formData.append('role[' + count + '][photo][' + count2 + '][public_id]', photo.public_id ? photo.public_id : '');
-                  formData.append('role[' + count + '][photo][' + count2 + '][url]', photo.url ? photo.url : '');
-                  formData.append('role[' + count + '][photo][' + count2 + '][photo]', photo.photo ? photo.photo : '');
-                  count2++  
-                }        
-              });              
-            } else {
-              formData.append('role[' + count + '][photo][' + 0 + '][id]', '');
-              formData.append('role[' + count + '][photo][' + 0 + '][public_id]', '');
-              formData.append('role[' + count + '][photo][' + 0 + '][url]', '');
-              formData.append('role[' + count + '][photo][' + 0 + '][photo]', '');
-            }
+          }
+        });
+        count = 0;
+        
+        formData.append('impression', this.editDVD.impression);
+        formData.append('story', this.editDVD.story);
+        formData.append('author', this.editDVD.author ? this.editDVD.author.replace(/\s+/g,'') : '');
+        formData.append('costumer', this.editDVD.costumer ? this.editDVD.costumer.replace(/\s+/g,'') : '');      
+        
+        this.editDVD.costumers.forEach(costumer => {
+          if(costumer.name){
+            formData.append('costumer[' + count + '][id]', costumer.id ? costumer.id : '');
+            formData.append('costumer[' + count + '][order]', costumer.order);
+            formData.append('costumer[' + count + '][name]', costumer.name);
             count++;
-          }            
-        }
-      });
-      count = 0;
-      
-      this.editDVD.histories.forEach(history => {
-        if(history.history) {
-          if(history.history.replace(/\s+/g, '')) {
-            let history_flag = 0;
-            if(history.title) {
-              if(history.title.replace(/\s+/g, '')) {
-                history_flag = 1;
+          }
+        });
+        count = 0;
+        
+        formData.append('lyricist', this.editDVD.lyricist ? this.editDVD.lyricist.replace(/\s+/g,'') : '');
+        formData.append('choreo', this.editDVD.choreo ? this.editDVD.choreo.replace(/\s+/g,'') : '');
+        formData.append('director', this.editDVD.director ? this.editDVD.director.replace(/\s+/g,'') : '');
+        
+        this.editDVD.groups.forEach(group => {
+          if(group.name){
+            if(group.name.replace(/\s+/g,'')) {
+              formData.append('group[' + count + '][id]', group.id ? group.id : '');
+              formData.append('group[' + count + '][key]', group.key);
+              formData.append('group[' + count + '][order]', group.order);
+              formData.append('group[' + count + '][name]', group.name);
+              count++;
+            }            
+          }
+        });
+        count = 0;
+        
+        this.editDVD.playerList.forEach(player => {
+          if(player.player){
+            if(player.player.replace(/\s+/g,'')) {
+              const role = this.optionRoles.find(role => role.role == player.role);
+              let role_impression;
+              if(role) {
+                role_impression = this.editDVD.roleImpressionList.find(roleImpression => roleImpression.role_key == role.key);
+              }
+              formData.append('role[' + count + '][id]', player.id ? player.id : '');
+              formData.append('role[' + count + '][order]', player.order);
+              formData.append('role[' + count + '][group_key]', player.group_key ? player.group_key : '');
+              formData.append('role[' + count + '][role]', player.role ? player.role : '');
+              formData.append('role[' + count + '][key]', player.key);
+              formData.append('role[' + count + '][player]', player.player.replace(/\s+/g,''));
+              formData.append('role[' + count + '][member]', player.member ? 1 : 0);
+              formData.append('role[' + count + '][impression]', role_impression ? role_impression.impression ? role_impression.impression : '' : '');
+              if(role_impression) {
+                let count2 = 0;
+                role_impression.photos.forEach(photo => {
+                  if(photo) {
+                    formData.append('role[' + count + '][photo][' + count2 + '][id]', photo.id ? photo.id : '');
+                    formData.append('role[' + count + '][photo][' + count2 + '][public_id]', photo.public_id ? photo.public_id : '');
+                    formData.append('role[' + count + '][photo][' + count2 + '][url]', photo.url ? photo.url : '');
+                    formData.append('role[' + count + '][photo][' + count2 + '][photo]', photo.photo ? photo.photo : '');
+                    count2++  
+                  }        
+                });              
+              } else {
+                formData.append('role[' + count + '][photo][' + 0 + '][id]', '');
+                formData.append('role[' + count + '][photo][' + 0 + '][public_id]', '');
+                formData.append('role[' + count + '][photo][' + 0 + '][url]', '');
+                formData.append('role[' + count + '][photo][' + 0 + '][photo]', '');
+              }
+              count++;
+            }            
+          }
+        });
+        count = 0;
+        
+        this.editDVD.histories.forEach(history => {
+          if(history.history) {
+            if(history.history.replace(/\s+/g, '')) {
+              let history_flag = 0;
+              if(history.title) {
+                if(history.title.replace(/\s+/g, '')) {
+                  history_flag = 1;
+                } else if(this.editDVD.histories.length === 1) {
+                  history_flag = 1;
+                }
               } else if(this.editDVD.histories.length === 1) {
                 history_flag = 1;
               }
-            } else if(this.editDVD.histories.length === 1) {
-              history_flag = 1;
-            }
 
-            if(history_flag) {
-              formData.append('history[' + count + '][id]', history.id ? history.id : '');
-              formData.append('history[' + count + '][order]', history.order);
-              formData.append('history[' + count + '][title]', history.title ? history.title.replace(/\s+/g, '') : '');
-              formData.append('history[' + count + '][history]', history.history);
-              count++;
+              if(history_flag) {
+                formData.append('history[' + count + '][id]', history.id ? history.id : '');
+                formData.append('history[' + count + '][order]', history.order);
+                formData.append('history[' + count + '][title]', history.title ? history.title.replace(/\s+/g, '') : '');
+                formData.append('history[' + count + '][history]', history.history);
+                count++;
+              }
             }
           }
-        }
-      });
-      count = 0
-      
-      this.editDVD.songs.forEach(song => {
-        if(song.title){
-          if(song.title.replace(/\s+/g,'')) {
-            formData.append('song[' + count + '][id]', song.id ? song.id : '');
-            formData.append('song[' + count + '][order]', song.order);
-            formData.append('song[' + count + '][title]', song.title);
-            formData.append('song[' + count + '][impression]', song.impression ? song.impression.replace(/\r+/g, '') : '');
+        });
+        count = 0
+        
+        this.editDVD.songs.forEach(song => {
+          if(song.title){
+            if(song.title.replace(/\s+/g,'')) {
+              formData.append('song[' + count + '][id]', song.id ? song.id : '');
+              formData.append('song[' + count + '][order]', song.order);
+              formData.append('song[' + count + '][title]', song.title);
+              formData.append('song[' + count + '][impression]', song.impression ? song.impression.replace(/\r+/g, '') : '');
 
-            if(song.singers.length) {
-              let count2 = 0;
-              for(let k = 0; k < song.singers.length; k++) {
-                const singer = song.singers[k];
-                if(singer.role_key || singer.group_key || singer.name) {
-                  let singerFlag = 0;
-                  if(singer.role_key || singer.group_key) {
-                    singerFlag = 1;
-                  } else if(singer.name.replace(/\s+/g, '')) {
-                    singerFlag = 1;
-                  }
+              if(song.singers.length) {
+                let count2 = 0;
+                for(let k = 0; k < song.singers.length; k++) {
+                  const singer = song.singers[k];
+                  if(singer.role_key || singer.group_key || singer.name) {
+                    let singerFlag = 0;
+                    if(singer.role_key || singer.group_key) {
+                      singerFlag = 1;
+                    } else if(singer.name.replace(/\s+/g, '')) {
+                      singerFlag = 1;
+                    }
 
-                  if(singerFlag) {
-                    formData.append('song[' + count + '][singer][' + count2 + '][id]', singer.id ? singer.id : '');
-                    formData.append('song[' + count + '][singer][' + count2 + '][order]', count2 + 1);
-                    formData.append('song[' + count + '][singer][' + count2 + '][type]', singer.type);
-                    if(singer.type === 'role') {
-                      formData.append('song[' + count + '][singer][' + count2 + '][name]', singer.role_key);
-                    } else if(singer.type === 'group') {
-                      formData.append('song[' + count + '][singer][' + count2 + '][name]', singer.group_key);
-                    } else if(singer.type === 'name') {
-                      formData.append('song[' + count + '][singer][' + count2 + '][name]', singer.name.replace(/\s+/g, ''));
-                    }                      
-                    count2++;
+                    if(singerFlag) {
+                      formData.append('song[' + count + '][singer][' + count2 + '][id]', singer.id ? singer.id : '');
+                      formData.append('song[' + count + '][singer][' + count2 + '][order]', count2 + 1);
+                      formData.append('song[' + count + '][singer][' + count2 + '][type]', singer.type);
+                      if(singer.type === 'role') {
+                        formData.append('song[' + count + '][singer][' + count2 + '][name]', singer.role_key);
+                      } else if(singer.type === 'group') {
+                        formData.append('song[' + count + '][singer][' + count2 + '][name]', singer.group_key);
+                      } else if(singer.type === 'name') {
+                        formData.append('song[' + count + '][singer][' + count2 + '][name]', singer.name.replace(/\s+/g, ''));
+                      }                      
+                      count2++;
+                    }
                   }
                 }
               }
+              count++;
             }
+          }
+        });
+        count = 0
+        
+        this.editDVD.others.forEach(other => {
+          let other_title_flag = 0;
+          let other_impression_flag = 0;
+
+          if(other.title) {
+            if(other.title.replace(/\s+/g,'')) {
+              other_title_flag = 1;
+            }
+          }
+
+          if(other.impression){
+            if(other.impression.replace(/\s+/g,'')) {
+              other_impression_flag = 1;          
+            }
+          }
+
+          if(other_title_flag || other_impression_flag) {
+            formData.append('other[' + count + '][id]', other.id ? other.id : '');
+            formData.append('other[' + count + '][order]', other.order);
+            formData.append('other[' + count + '][title]', other_title_flag ? other.title : '');
+            formData.append('other[' + count + '][impression]', other_impression_flag ? other.impression : '');
             count++;
           }
-        }
-      });
-      count = 0
-      
-      this.editDVD.others.forEach(other => {
-        let other_title_flag = 0;
-        let other_impression_flag = 0;
-
-        if(other.title) {
-          if(other.title.replace(/\s+/g,'')) {
-            other_title_flag = 1;
-          }
-        }
-
-        if(other.impression){
-          if(other.impression.replace(/\s+/g,'')) {
-            other_impression_flag = 1;          
-          }
-        }
-
-        if(other_title_flag || other_impression_flag) {
-          formData.append('other[' + count + '][id]', other.id ? other.id : '');
-          formData.append('other[' + count + '][order]', other.order);
-          formData.append('other[' + count + '][title]', other_title_flag ? other.title : '');
-          formData.append('other[' + count + '][impression]', other_impression_flag ? other.impression : '');
-          count++;
-        }
-      });
-      count = 0
-      
-      formData.append('photo[' + count + '][id]', this.editDVD.photos[0].id ? this.editDVD.photos[0].id : '');
-      formData.append('photo[' + count + '][public_id]', this.editDVD.photos[0].public_id ? this.editDVD.photos[0].public_id : '');
-      formData.append('photo[' + count + '][url]', this.editDVD.photos[0].url ? this.editDVD.photos[0].url : '');
-      formData.append('photo[' + count + '][photo]', this.editDVD.photos[0].photo ? this.editDVD.photos[0].photo : '');
-
-      formData.append('format', this.editDVD.format);
-      formData.append('official', this.editDVD.official ? 1 : 0);
-      formData.append('special', this.editDVD.special ? 1 : 0);
-      formData.append('url_DVD', this.editDVD.url_DVD);
-      formData.append('url_movie', this.editDVD.url_movie);
-      formData.append('url_youtube', this.editDVD.url_youtube);
-      formData.append('category', this.editDVD.category);
-
-      const response = await axios.post('/api/DVD/' + this.DVD.id, formData);
-
-      if (response.status === 422) {
-        this.errors.error = response.data.errors;
-        // メッセージ登録
-        this.$store.commit('message/setContent', {
-          content: '登録できませんでした',
-          timeout: 6000
         });
-        return false;
+        count = 0
+        
+        formData.append('photo[' + count + '][id]', this.editDVD.photos[0].id ? this.editDVD.photos[0].id : '');
+        formData.append('photo[' + count + '][public_id]', this.editDVD.photos[0].public_id ? this.editDVD.photos[0].public_id : '');
+        formData.append('photo[' + count + '][url]', this.editDVD.photos[0].url ? this.editDVD.photos[0].url : '');
+        formData.append('photo[' + count + '][photo]', this.editDVD.photos[0].photo ? this.editDVD.photos[0].photo : '');
+
+        formData.append('format', this.editDVD.format);
+        formData.append('official', this.editDVD.official ? 1 : 0);
+        formData.append('special', this.editDVD.special ? 1 : 0);
+        formData.append('url_DVD', this.editDVD.url_DVD);
+        formData.append('url_movie', this.editDVD.url_movie);
+        formData.append('url_youtube', this.editDVD.url_youtube);
+        formData.append('category', this.editDVD.category);
+
+        const response = await axios.post('/api/DVD/' + this.DVD.id, formData);
+
+        if (response.status === 422) {
+          this.errors.error = response.data.errors;
+          // メッセージ登録
+          this.$store.commit('message/setContent', {
+            content: '登録できませんでした',
+            timeout: 6000
+          });
+          return false;
+        }
+
+        if (response.status !== 200) {
+          this.$store.commit('error/setCode', response.status);
+          // メッセージ登録
+          this.$store.commit('message/setContent', {
+            content: '登録できませんでした',
+            timeout: 6000
+          });
+          return false;
+        }
       }
 
-      if (response.status !== 200) {
-        this.$store.commit('error/setCode', response.status);
-        // メッセージ登録
-        this.$store.commit('message/setContent', {
-          content: '登録できませんでした',
-          timeout: 6000
+      if(this.flagRent) {
+        const formData = new FormData();
+        let count = 0;
+
+        formData.append('DVD_id', this.DVD.id);
+        this.editDVD.rents.forEach(rent => {
+          if(rent.name) {
+            formData.append('rent[' + count + '][id]', rent.id ? rent.id : '');
+            formData.append('rent[' + count + '][name]', rent.name);
+            formData.append('rent[' + count + '][start_date]', rent.start_date ? rent.start_date : '');
+            formData.append('rent[' + count + '][return_date]', rent.return_date ? rent.return_date : '');
+            count++;
+          }
         });
-        return false;
+
+        const response = await axios.post('/api/rentEdit', formData);
+
+        if (response.status === 422) {
+          this.errors.error = response.data.errors;
+          // メッセージ登録
+          this.$store.commit('message/setContent', {
+            content: '登録できませんでした',
+            timeout: 6000
+          });
+          return false;
+        }
+
+        if (response.status !== 200) {
+          this.$store.commit('error/setCode', response.status);
+          // メッセージ登録
+          this.$store.commit('message/setContent', {
+            content: '登録できませんでした',
+            timeout: 6000
+          });
+          return false;
+        }
       }
 
-      // 諸々データ更新
+      this.reset();
       await this.fetchDVD();
       this.alterTab();
-      
+
       window.scrollTo({
         top: 0,
         behavior: "smooth"
@@ -2276,6 +2369,74 @@ export default {
       return str.replace(/[\u3041-\u3096]/g, ch =>
         String.fromCharCode(ch.charCodeAt(0) + 0x60)
       );
+    },
+
+    // リセット
+    reset() {
+      // 表示するDVDのデータ
+      this.DVD =  {};
+      // 元データ
+      this.originalDVD = {};
+      // 貸出可否
+      this.rentFlag =  0;  
+      
+      // 編集用元データ
+      this.originalEditDVD = {};
+      // 編集するデータ
+      this.editDVD = {
+        title: null,
+        kana: null,
+        duration_from: '2023-01-01',
+        duration_to: '2023-04-01',
+        locations : [],
+        impression: '',
+        story: '',
+        author: '',
+        costumers: [],
+        lyricist: '',
+        choreo: '',
+        director: '',
+        playerList : [],
+        groups : [],
+        roleImpressionList: [],
+        histories: [],
+        songs: [],
+        others: [],
+        photos: [],
+        rents: [],
+        format: 1,
+        official: true,
+        special: false,
+        url_DVD: '',
+        url_movie: '',
+        url_youtube: '',
+        category: 1
+      };
+      this.playersAll = null;
+      this.playerFlag = false;
+      this.optionPlayers = []; // 役者
+      this.optionGroups = []; // 分類名
+      this.optionRoles = []; // 役名
+      // エラー
+      this.errors = {
+        photo: {
+          roleImpression: null,
+          pres: null
+        },
+        error: null,
+      };
+
+      // 編集要否
+      this.flag = 0;
+      this.flagRent = 0;
+
+      // 写真
+      document.getElementById('detail_photo').value = null;
+
+      let roleImpresionsPhotos = [].slice.call(document.querySelectorAll('[id^="detail_role_impressions_photo_"]'));
+      roleImpresionsPhotos.forEach(roleImpresionsPhoto => {
+        roleImpresionsPhoto.value = null;
+      });
     },
 
     // 削除ボタン
