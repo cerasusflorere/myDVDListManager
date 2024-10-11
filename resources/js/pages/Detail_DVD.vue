@@ -172,15 +172,17 @@
               <div ref="detail_show_role_impression_headers">【{{ roleImpression.role }} <span><span class="detail-show-role-impression-detail-small">(by {{ roleImpression.player }})</span>】</span></div>
               <div class="detail-show-role-impression-detail-impression">{{ roleImpression.impression }}</div>
             </div>
-            <div class="detail-show-role-impression-photo">
-              <figure v-if="roleImpression.photos[0]" class="detail-show-role-impression-photo-wrapper">
-                <img
-                  class="detail-show-role-impression-photo-image"
-                  :src="roleImpression.photos[0].url"
-                  :alt="roleImpression.role"
-                >
-                <input type="button" class="detail-show-photo-button" @click="openModal_photo(roleImpression.photos[0].url)">
-              </figure>
+            <div v-if="roleImpression.photos" class="detail-show-role-impression-photo">
+              <div v-for="roleImpresionsPhoto in roleImpression.photos">
+                <figure v-if="roleImpresionsPhoto.url" class="detail-show-role-impression-photo-wrapper">
+                  <img
+                    class="detail-show-role-impression-photo-image"
+                    :src="roleImpresionsPhoto.url"
+                    :alt="roleImpression.role"
+                  >
+                  <input type="button" class="detail-show-photo-button" @click="openModal_photo(roleImpresionsPhoto.url)">
+                </figure>
+              </div>              
             </div>
           </div>
         </div>
@@ -590,11 +592,11 @@
 
                 <!-- 中身 -->
                 <div id="add_role_impressions_bodyblock" class="add-role-impression-bodyblock">
-                  <section v-for="(roleImpression, index) in editDVD.roleImpressionList" :key="index">
+                  <section v-for="(roleImpression, roleImpressionIndex) in editDVD.roleImpressionList" :key="index">
                     <!-- 1セット -->
                     <div class="add-role-impressions-bodyline">
                       <div class="add-roles-impressions-cell add-role-impressions-body-cell add-role-impressions-cell-role">
-                        <select class="add-role-impressions-input add-role-impressions-role" v-model="roleImpression.role_key" @change="chooseRole(index)">
+                        <select class="add-role-impressions-input add-role-impressions-role" v-model="roleImpression.role_key" @change="chooseRole(roleImpressionIndex)">
                           <option value="">選択</option>
                           <option v-for="role in optionRoles" 
                             :value="role.key">
@@ -606,33 +608,54 @@
                         <textarea class="add-role-impressions-input add-role-impressions-impression" v-model="roleImpression.impression" placeholder="どうだった？"></textarea>  
                       </div>
                       <div class="add-roles-impressions-cell add-role-impressions-body-cell add-role-impressions-cell-photo">
-                        <label :for="'detail_role_impressions_photo_' + index" class="add-role-impressions-input add-role-impressions-photo-button">選択</label>
-                        <input type="file" :id="'detail_role_impressions_photo_' + index" class="add-role-impressions-photo" @change="previewFileRoleImpression(index, $event)">
-                        <div class="add-role-impressions-photo-area">
-                          <!-- 写真 -->
-                          <div v-if="roleImpression.photos[0]">
-                            <div v-if="roleImpression.photos[0].url && roleImpression.photos[0].photo === 1">
-                              <output class="add-role-impressions-photo-output">
-                                <button type="button" class="add-role-impressions-photo-resetbutton" @click="deletePhotoRoleImpression(index)"><i class="fa-solid fa-xmark"></i></button>
-                                <img :src="roleImpression.photos[0].url" :alt="roleImpression.photos[0].role" style="max-height: 12em">
-                              </output>
-                            </div>
-                            <div v-else-if="roleImpression.photos[0].photo">
-                              <output v-if="roleImpression.photos[0].preview" class="add-role-impressions-photo-output">
-                                <button type="button" class="add-role-impressions-photo-resetbutton" @click="resetPhotoRoleImpression(index)"><i class="fa-solid fa-xmark"></i></button>
-                                <img :src="roleImpression.photos[0].preview" alt="" style="max-height: 12em">
-                              </output>
-                            </div>
-                          </div>                          
-                        </div>                      
+                        <draggable v-model="roleImpression.photos" group="roleImpressionPhotos" item-key="key" tag="section" class="add-role-impression-photos-block">
+                          <!-- 1セット -->
+                          <template #item="{element : photo, index: roleImpressionPhotoIndex}">
+                            <div class="add-photo-block">
+                              <label :for="'detail_role_impressions_photo_' + roleImpressionIndex + '_' + roleImpressionPhotoIndex" class="add-role-impressions-input add-role-impressions-photo-button">選択</label>
+                              <input type="file" :id="'detail_role_impressions_photo_' + roleImpressionIndex + '_' + roleImpressionPhotoIndex" class="add-role-impressions-photo" @change="previewFileRoleImpression(roleImpressionIndex, roleImpressionPhotoIndex, $event)">
+                              <div class="add-role-impressions-photo-area">
+                                <div v-if="photo.url && photo.photo === 1">
+                                  <output class="add-role-impressions-photo-output">
+                                    <button type="button" class="add-role-impressions-photo-resetbutton" @click="deletePhotoRoleImpression(roleImpressionIndex, roleImpressionPhotoIndex)"><i class="fa-solid fa-xmark"></i></button>
+                                    <img :src="photo.url" :alt="roleImpression.role" class="add-role-impressions-photo-preview">
+                                  </output>
+                                </div>
+                                <div v-else-if="photo.photo">
+                                  <output v-if="photo.preview" class="add-role-impressions-photo-output">
+                                    <button type="button" class="add-role-impressions-photo-resetbutton" @click="resetPhotoRoleImpression(roleImpressionIndex, roleImpressionPhotoIndex)"><i class="fa-solid fa-xmark"></i></button>
+                                    <img :src="photo.preview" alt="" class="add-role-impressions-photo-preview">
+                                  </output>
+                                </div>
 
-                        <div v-if="errors.photo.roleImpression" class="add-error-message-role-impressions-photo">{{ errors.photo.roleImpression }}</div>
+                                <div v-if="errors.roleImpressions[roleImpressionIndex].photos[roleImpressionPhotoIndex]" class="add-error-message-role-impressions-photo">{{ errors.roleImpressions[roleImpressionIndex].photos[roleImpressionPhotoIndex] }}</div>
+                                  
+                              </div>
+                            </div>
+                          </template>
+                        </draggable>
+                        
+                        <!-- フォームボタン -->
+                        <div class="add-add-minus-button-area add-add-minus-button-area-small">
+                          <div ref="detail_minus_button_area_role_impression_photos_form" class="add-minus-button-area add-minus-button-area-small" style="visibility: hidden">
+                            <button type="button" class="add-add-button add-add-button-small" @click="minusRoleImpressionPhotoForm(roleImpressionIndex)">
+                              <div class="add-add-button-icon add-add-button-icon-small">
+                                <i class="fa-solid fa-minus"></i>
+                              </div>
+                            </button>
+                          </div>
+                          <div ref="detail_add_button_area_role_impression_photos_form" class="add-add-button-area add-minus-button-area-small">
+                            <button type="button" class="add-add-button add-add-button-small" @click="plusRoleImpressionPhotoForm(roleImpressionIndex)">
+                              <div class="add-add-button-icon add-add-button-icon-small">
+                                <i class="fa-solid fa-plus"></i>
+                              </div>
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </section>
-                  
-                </div>
-                      
+                  </section>                  
+                </div>                      
               </div>
 
               <!-- フォームボタン -->
@@ -1152,10 +1175,9 @@ export default {
       optionRoles : [], // 役名
       // エラー
       errors: {
-        photo: {
-          roleImpression: null,
-          pres: null
-        },
+        roleImpressions: [
+          {photos:[null]}
+        ],
         photos: [],
         error: null,
       },
@@ -1266,12 +1288,12 @@ export default {
       this.DVD = response.data;
       let count = 0;
       this.DVD.roles.forEach(role => {
-        if(role.impression){
+        if(role.impression || role.role_photos.length){
           if(!this.DVD.roleImpressionList) {
             this.DVD.roleImpressionList = [];
           }
           this.DVD.roleImpressionList[count] = new Object();
-          const newRoleImpression = {role_id: role.id, order: role.order, role: role.role, player: role.player, impression: role.impression, photos: role.role_photos};
+          const newRoleImpression = {role_id: role.id, order: role.order, role: role.role, player: role.player, impression: role.impression ? role.impression : null, photos: role.role_photos.length ? role.role_photos : null};
           this.DVD.roleImpressionList[count] = newRoleImpression;
           count++;
         }
@@ -1283,9 +1305,14 @@ export default {
       this.DVD.costumers.sort((a, b) => a.order - b.order );
       this.DVD.roles.sort((a, b) => a.order - b.order );
       this.DVD.roleImpressionList.sort((a, b) => a.order - b.order);
+      this.DVD.roleImpressionList.forEach(roleImpression => {
+        if(roleImpression.photos) {
+          roleImpression.photos.sort((a, b) => a.order - b.order);
+        }
+      });
       this.DVD.role_groups.sort((a, b) => a.order - b.order);
       this.DVD.songs.sort((a, b) => a.order - b.order);
-      this.DVD.songs.forEach((song) => {
+      this.DVD.songs.forEach(song => {
         song.singers.sort((a, b) => a.order - b.order);
       });
       this.DVD.others.sort((a, b) => a.order - b.order);
@@ -1331,24 +1358,29 @@ export default {
           this.optionRoles[m].key = key;
           this.optionRoles[m].role = role.role;
           m++;
-        }        
-        if(role.impression) {
+        }
+        if(role.role && (role.impression || role.role_photos.length)) {
           this.editDVD.roleImpressionList[k] = new Object();
           this.editDVD.roleImpressionList[k].role_id = role.id;
           this.editDVD.roleImpressionList[k].order = role.order;
           this.editDVD.roleImpressionList[k].role_key = key;
-          this.editDVD.roleImpressionList[k].impression = role.impression;
-          this.editDVD.roleImpressionList[k].photos = []
+          this.editDVD.roleImpressionList[k].impression = role.impression ? role.impression : null;
+          this.editDVD.roleImpressionList[k].photos = [];
+          this.errors.roleImpressions.push({photos: []});
           if(role.role_photos.length) {
-            this.editDVD.roleImpressionList[k].photos[0] = new Object();
-            this.editDVD.roleImpressionList[k].photos[0].id = role.role_photos[0].id;
-            this.editDVD.roleImpressionList[k].photos[0].public_id = role.role_photos[0].public_id;
-            this.editDVD.roleImpressionList[k].photos[0].url = role.role_photos[0].url;
-            this.editDVD.roleImpressionList[k].photos[0].photo = 1; // 写真が登録されている（可能性：1のまま、0に変更（この時public_idは存在する）、写真バイナリ代入（この時public_idは存在する））
-            this.editDVD.roleImpressionList[k].photos[0].preview = null;
-          } else {
-            this.editDVD.roleImpressionList[k].photos[0] = new Object();
-            this.editDVD.roleImpressionList[k].photos[0].photo = 0; // 写真が登録されていない（可能性：0のまま（この時pubic_idは存在しない）、写真バイナリ代入（この時public_idは存在しない））
+            let l = 0;
+            role.role_photos.forEach(role_photo => {
+              this.editDVD.roleImpressionList[k].photos[l] = new Object();
+              this.editDVD.roleImpressionList[k].photos[l].id = role_photo.id;
+              this.editDVD.roleImpressionList[k].photos[l].order = role_photo.order;
+              this.editDVD.roleImpressionList[k].photos[l].public_id = role_photo.public_id;
+              this.editDVD.roleImpressionList[k].photos[l].url = role_photo.url;
+              this.editDVD.roleImpressionList[k].photos[l].photo = 1; // 写真が登録されている（可能性：1のまま、0に変更（この時public_idは存在する）、写真バイナリ代入（この時public_idは存在する））
+              this.editDVD.roleImpressionList[k].photos[l].preview = null;
+
+              this.errors.roleImpressions[k].photos.push(null);
+              l++
+            });
           }
           k++;
         }
@@ -1356,6 +1388,9 @@ export default {
       this.editDVD.playerList.sort((a, b) => a.order - b.order);
       this.optionRoles.sort((a, b) => a.order - b.order);
       this.editDVD.roleImpressionList.sort((a, b) => a.order = b.order);
+      this.editDVD.roleImpressionList.forEach(roleImpression => {
+        roleImpression.photos.sort((a, b) => a.order - b.order);
+      });
 
       this.originalDVD.role_groups.forEach((group, index) => {
         const key = this.getUniqueStr();
@@ -1389,7 +1424,7 @@ export default {
         this.editDVD.songs[index].order = song.order;
         this.editDVD.songs[index].title = song.title;
         this.editDVD.songs[index].impression = song.impression ? song.impression : null;
-        this.editDVD.songs[index].singers = new Array();
+        this.editDVD.songs[index].singers = [];
 
         song.singers.forEach((singer, index2) => {
           this.editDVD.songs[index].singers[index2] = new Object();
@@ -1422,8 +1457,6 @@ export default {
           this.errors.photos.push(null);
         });
         this.editDVD.photos.sort((a, b) => a.order - b.order);
-      } else {
-        this.editDVD.photos = null;
       }
       
       this.editDVD.rents = this.originalDVD.rents ? this.originalDVD.rents : null;
@@ -1452,6 +1485,7 @@ export default {
           mainRem = this.convertRem2Px(4) * 2;
         }
 
+        // 画面の大きさによって表示変更
         // 役感想
         if(this.$refs.detail_show_role_impression_headers) {
           this.$refs.detail_show_role_impression_headers.forEach(header => {
@@ -1476,6 +1510,7 @@ export default {
           });
         }
 
+
         if(!this.editDVD.locations.length) {
           this.plusLocationForm();
         }
@@ -1499,6 +1534,7 @@ export default {
             this.$refs.detail_minus_button_area_players_form.style.visibility = 'hidden';
           }
         }
+
         if(!this.editDVD.roleImpressionList.length) {
           this.plusRoleImpressionForm();
         } else if(this.editDVD.roleImpressionList.length <= this.editDVD.playerList.length) {
@@ -1514,6 +1550,12 @@ export default {
             this.$refs.detail_minus_button_area_role_impressions_form.style.visibility = 'hidden';
           }
         }
+
+        this.editDVD.roleImpressionList.forEach((roleImpression, index) => {
+          if(!roleImpression.photos.length) {
+            this.plusRoleImpressionPhotoForm(index);
+          }
+        });
         
         if(!this.editDVD.groups.length) {
           this.plusGroupForm();
@@ -1562,6 +1604,12 @@ export default {
             this.$refs.detail_minus_button_area_songs_form.style.visibility = 'hidden';
           }
         }
+
+        this.editDVD.songs.forEach((song, index) => {
+          if(!song.singers.length) {
+            this.plusSingerForm(index);
+          }
+        });
         
         if(!this.editDVD.others.length) {
           this.plusOtherForm();
@@ -1598,8 +1646,22 @@ export default {
         // ふりがなのinput要素のidは省略可能
         autokana = AutoKana.bind('#detail_title');
 
-        // 歌フォーム描写後
+        // 役感想フォーム、歌フォーム描写後
         this.$nextTick(() => {
+          this.editDVD.roleImpressionList.forEach((roleImpression, index) => {
+            if(roleImpression.photos.length < 10) {
+              this.$refs.detail_add_button_area_role_impression_photos_form[index].style.visibility = 'visible';
+            } else {
+              this.$refs.detail_add_button_area_role_impression_photos_form[index].style.visibility = 'hidden';
+            }
+            
+            if(roleImpression.photos.length > 1) {
+              this.$refs.detail_minus_button_area_role_impression_photos_form[index].style.visibility = 'visible';
+            } else {
+              this.$refs.detail_minus_button_area_role_impression_photos_form[index].style.visibility = 'hidden';
+            }
+          });
+
           this.editDVD.songs.forEach((song, index) => {
             const addButton = 'detail_add_button_area_singers_form_' + index;
             const minusButton = 'detail_minus_button_area_singers_form_' + index;
@@ -1616,7 +1678,7 @@ export default {
             }
           });
         });
-      });      
+      });
     },
 
     // remからpx
@@ -1670,7 +1732,7 @@ export default {
     },
 
     // 入力された役名をプルダウンメニューに追加
-    getRole: function(key) {
+    getRole(key) {
       const optionRole = this.optionRoles.find(role => role.key === key);
       const player = this.editDVD.playerList.find(role => role.key === key);
 
@@ -1683,18 +1745,18 @@ export default {
     },
 
     // 写真プレビュー
-    previewFileRoleImpression: function(index, event) {
-      this.errors.photo.roleImpression = null;
+    previewFileRoleImpression(roleImpressionIndex, roleImpresionsPhotoIndex, event) {
+      this.errors.roleImpressions[roleImpressionIndex].photos[roleImpresionsPhotoIndex] = null;
       // 何も選択されていなかったら処理中断
       if (event.target.files.length === 0) {
-        this.resetPhotoRoleImpression(index);
+        this.resetPhotoRoleImpression(roleImpressionIndex, roleImpresionsPhotoIndex);
         return false;
       }
 
       // ファイルが画像ではなかったら処理中断
       if (!event.target.files[0].type.match('image.*')) {
-        this.resetPhotoRoleImpression(index);
-        this.errors.photo.roleImpression = '写真データを選択してください';
+        this.resetPhotoRoleImpression(roleImpressionIndex, roleImpresionsPhotoIndex);
+        this.errors.roleImpressions[roleImpressionIndex].photos[roleImpresionsPhotoIndex] = '写真データを選択してください';
         return false;
       }
 
@@ -1707,30 +1769,30 @@ export default {
         // previewに値が入ると<output>につけたv-ifがtrueと判定される
         // また<output>内部の<img>のsrc属性はpreviewの値を参照しているので
         // 結果として画像が表示される
-        this.editDVD.roleImpressionList[index].photos[0].preview = e.target.result;
+        this.editDVD.roleImpressionList[roleImpressionIndex].photos[roleImpresionsPhotoIndex].preview = e.target.result;
       }
 
       // ファイルを読み込む
       // 読み込まれたファイルはデータURL形式で受け取れる（上記onload参照）
       reader.readAsDataURL(event.target.files[0]);
   
-      if(this.editDVD.roleImpressionList[index].photos[0].photo === 1) {
-        this.deletePhotoRoleImpression(index);
+      if(this.editDVD.roleImpressionList[roleImpressionIndex].photos[roleImpresionsPhotoIndex].photo === 1) {
+        this.deletePhotoRoleImpression(roleImpressionIndex, roleImpresionsPhotoIndex);
       }
-      this.editDVD.roleImpressionList[index].photos[0].photo = event.target.files[0];
+      this.editDVD.roleImpressionList[roleImpressionIndex].photos[roleImpresionsPhotoIndex].photo = event.target.files[0];
     },
 
     // 画像をクリアするメソッド
-    resetPhotoRoleImpression: function(index) {
-      this.editDVD.roleImpressionList[index].photos[0].preview = null;
-      this.editDVD.roleImpressionList[index].photos[0].photo = '';
-      document.getElementById('detail_role_impressions_photo_' + index).value = null;
+    resetPhotoRoleImpression(roleImpressionIndex, roleImpresionsPhotoIndex) {
+      this.editDVD.roleImpressionList[roleImpressionIndex].photos[roleImpresionsPhotoIndex].preview = null;
+      this.editDVD.roleImpressionList[roleImpressionIndex].photos[roleImpresionsPhotoIndex].photo = '';
+      document.getElementById('detail_role_impressions_photo_' + roleImpressionIndex + '_' + roleImpresionsPhotoIndex).value = null;
     },
 
     // 写真を見せない
-    deletePhotoRoleImpression : function (index) {
-      this.editDVD.roleImpressionList[index].photos[0].photo = 0;
-      this.editDVD.roleImpressionList[index].photos[0].url = '';
+    deletePhotoRoleImpression(roleImpressionIndex, roleImpresionsPhotoIndex) {
+      this.editDVD.roleImpressionList[roleImpressionIndex].photos[roleImpresionsPhotoIndex].photo = 0;
+      this.editDVD.roleImpressionList[roleImpressionIndex].photos[roleImpresionsPhotoIndex].url = '';
     },
 
     // 写真プレビュー
@@ -1806,7 +1868,7 @@ export default {
       ) {
         this.flag = 1;
       }
-      
+
       this.editDVD.locations = this.editDVD.locations.filter(location => location.prefecture ? location : null);
       for(let i = 0; i < this.editDVD.locations.length; i++) {
         this.editDVD.locations[i].order = i + 1;
@@ -1879,20 +1941,46 @@ export default {
         this.plusPlayerForm();
       }
       
-      this.editDVD.roleImpressionList = this.editDVD.roleImpressionList.filter(roleImpression => roleImpression.impression ? roleImpression : null);
+      let count = 0;
       for(let i = 0; i < this.editDVD.roleImpressionList.length; i++) {
-        this.editDVD.roleImpressionList[i].order = i + 1;
+        if(this.editDVD.roleImpressionList[i].impression) {
+          this.editDVD.roleImpressionList[i].order = count + 1;
+          this.editDVD.roleImpressionList[i].photos = this.editDVD.roleImpressionList[i].photos.filter(photo => photo.photo ? photo : null);
+          if(this.editDVD.roleImpressionList[i].photos.length) {
+            let count2 = 0;
+            for(let k = 0; k < this.editDVD.roleImpressionList[i].photos.length; k++) {
+              if(this.editDVD.roleImpressionList[i].photos[k].photo) {
+                this.editDVD.roleImpressionList[i].photos[k].order = count2 + 1;
+                count2++;
+              }
+            }
+          }
+        } else {
+          this.editDVD.roleImpressionList[i].photos = this.editDVD.roleImpressionList[i].photos.filter(photo => photo.photo ? photo : null);
+          let count2 = 0;
+          for(let k = 0; k < this.editDVD.roleImpressionList[i].photos.length; k++) {
+            if(this.editDVD.roleImpressionList[i].photos[k].photo) {
+              this.editDVD.roleImpressionList[i].photos[k].order = count2 + 1;
+              count2++;
+            }
+          }
+        }
       }
+      this.editDVD.roleImpressionList = this.editDVD.roleImpressionList.filter(roleImpression => roleImpression.order ? roleImpression : null);
       if(!this.flag && this.originalEditDVD.roleImpressionList.length === this.editDVD.roleImpressionList.length) {
         this.originalEditDVD.roleImpressionList.forEach((role,index) => {
-          if(role.impression !== this.editDVD.roleImpressionList[index].impression || role.role_key !== this.editDVD.roleImpressionList[index].role_key || role.role_id !== this.editDVD.roleImpressionList[index].role_id){
+          if(!this.flag && role.impression !== this.editDVD.roleImpressionList[index].impression || role.role_key !== this.editDVD.roleImpressionList[index].role_key || role.role_id !== this.editDVD.roleImpressionList[index].role_id){
             this.flag = 1;
           } else {
-            role.photos.forEach((photo, index2) => {
-              if(photo.photo !== this.editDVD.roleImpressionList[index].photos[index2].photo) {
-                this.flag = 1;
-              }
-            });
+            if(!this.flag && role.photos.length === this.editDVD.roleImpressionList[index].photos.length) {
+              role.photos.forEach((photo, index2) => {
+                if(!this.flag && photo.id !== this.editDVD.roleImpressionList[index].photos[index2].id || photo.order !== this.editDVD.roleImpressionList[index].photos[index2].order || photo.photo !== this.editDVD.roleImpressionList[index].photos[index2].photo) {
+                  this.flag = 1;
+                }
+              });
+            } else {
+              this.flag = 1;
+            }            
           }
         });
       } else {
@@ -1900,20 +1988,6 @@ export default {
       }
       if(!this.editDVD.roleImpressionList.length) {
         this.plusRoleImpressionForm();
-      }
-      
-      this.editDVD.photos = this.editDVD.photos.filter(photo => photo.photo || photo.photo === 0 ? photo : null);
-      if(!this.editDVD.photos.length) {
-        this.editDVD.photos[0].photo = 0;
-      }
-      if(!this.flag && this.originalEditDVD.photos.length === this.editDVD.photos.length) {
-        this.originalEditDVD.photos.forEach((photo, index) => {
-          if(photo.photo !== this.editDVD.photos[index].photo) {
-            this.flag = 1;
-          }
-        });
-      } else {
-        this.flag = 1;
       }
       
       this.editDVD.histories = this.editDVD.histories.filter(history => history.title || history.history ? history : null);
@@ -2062,6 +2136,8 @@ export default {
     closeModal_message() {
       this.showContent_message = false;
       this.dialog_message = '';
+      this.flag = 0;
+      this.flagRent = 0;
     },
     // confirmのモーダル非表示_OKの場合
     async closeModal_confirm_OK() {
@@ -2076,7 +2152,9 @@ export default {
     // confirmのモーダル非表示_Cancelの場合
     closeModal_confirm_Cancel() {
       this.showContent_confirm = false;
-      this.dialog_confirm = ''
+      this.dialog_confirm = '';
+      this.flag = 0;
+      this.flagRent = 0;
     },
     // データ送信
     async editData() {      
@@ -2185,17 +2263,13 @@ export default {
                 role_impression.photos.forEach(photo => {
                   if(photo) {
                     formData.append('role[' + count + '][photo][' + count2 + '][id]', photo.id ? photo.id : '');
+                    formData.append('role[' + count + '][photo][' + count2 + '][order]', count2 + 1);
                     formData.append('role[' + count + '][photo][' + count2 + '][public_id]', photo.public_id ? photo.public_id : '');
                     formData.append('role[' + count + '][photo][' + count2 + '][url]', photo.url ? photo.url : '');
                     formData.append('role[' + count + '][photo][' + count2 + '][photo]', photo.photo ? photo.photo : '');
                     count2++  
                   }        
                 });              
-              } else {
-                formData.append('role[' + count + '][photo][' + 0 + '][id]', '');
-                formData.append('role[' + count + '][photo][' + 0 + '][public_id]', '');
-                formData.append('role[' + count + '][photo][' + 0 + '][url]', '');
-                formData.append('role[' + count + '][photo][' + 0 + '][photo]', '');
               }
               count++;
             }            
@@ -2493,10 +2567,9 @@ export default {
       this.optionRoles = []; // 役名
       // エラー
       this.errors = {
-        photo: {
-          roleImpression: null,
-          pres: null
-        },
+        roleImpressions: [
+          {photos: [null]}
+        ],
         photos: [],
         error: null,
       };
@@ -2754,8 +2827,10 @@ export default {
       if(this.editDVD.roleImpressionList.length < 50 && this.editDVD.roleImpressionList.length < this.editDVD.playerList.length) {
         // 追加
         this.editDVD.roleImpressionList.push({
-          id: null, order: null, role_key: "", impression: '', photos: [{photo: 0}]
+          id: null, order: null, role_key: "", impression: '', photos: [{id: null, order: null, preview: null, photo: 0}]
         });
+        this.errors.roleImpressions.push({photos: [null]});
+
 
         if(this.editDVD.roleImpressionList.length === 2){
           this.$refs.detail_minus_button_area_role_impressions_form.style.visibility = 'visible';
@@ -2774,6 +2849,7 @@ export default {
       if(this.editDVD.roleImpressionList.length > 1) {
         // 削除
         this.editDVD.roleImpressionList.pop();
+        this.errors.roleImpressions.pop();
 
         if(this.editDVD.roleImpressionList.length === 1){
           this.$refs.detail_minus_button_area_role_impressions_form.style.visibility = 'hidden';
@@ -2789,10 +2865,40 @@ export default {
       }
     },
     // 役を選んだら
-    chooseRole: function(index) {
+    chooseRole(index) {
       const key = this.editDVD.roleImpressionList[index].role_key;
       const chosePlayer = this.editDVD.playerList.find(player => player.key === key);
       this.editDVD.roleImpressionList[index].order = chosePlayer.order;
+    },
+
+    // 役感想_写真フォーム
+    plusRoleImpressionPhotoForm(roleImpressionIndex) {
+      if(this.editDVD.roleImpressionList[roleImpressionIndex].photos.length < 5) {
+        // 追加
+        this.editDVD.roleImpressionList[roleImpressionIndex].photos.push({
+          id: null, order: null, preview: null, photo: 0
+        });
+        this.errors.roleImpressions[roleImpressionIndex].photos.push(null);          
+
+        if(this.editDVD.roleImpressionList[roleImpressionIndex].photos.length === 2) {
+          this.$refs.detail_minus_button_area_role_impression_photos_form[roleImpressionIndex].style.visibility = 'visible';
+        } else if (this.editDVD.roleImpressionList[roleImpressionIndex].photos.length === 5) {
+          this.$refs.detail_add_button_area_role_impression_photos_form[roleImpressionIndex].style.visibility = 'hidden';
+        }
+      }
+    },
+    minusRoleImpressionPhotoForm(roleImpressionIndex) {
+      if(this.editDVD.roleImpressionList[roleImpressionIndex].photos.length > 1) {
+        // 削除
+        this.editDVD.roleImpressionList[roleImpressionIndex].photos.pop();
+        this.errors.roleImpressions[roleImpressionIndex].photos.pop();
+
+        if(this.editDVD.roleImpressionList[roleImpressionIndex].photos.length === 1){
+          this.$refs.detail_minus_button_area_role_impression_photos_form[roleImpressionIndex].style.visibility = 'hidden';
+        } else if (this.editDVD.roleImpressionList[roleImpressionIndex].photos.length === 4) {
+          this.$refs.detail_add_button_area_role_impression_photos_form[roleImpressionIndex].style.visibility = 'visible';
+        }
+      }
     },
 
     // 歴史フォーム

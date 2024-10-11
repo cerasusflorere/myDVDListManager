@@ -214,12 +214,12 @@ class DVDController extends BaseController
                     foreach($role['photo'] as $photo) {                    
                         if($photo){
                             // Cloudinaryにファイルを保存する
-                            $result = $photo->storeOnCloudinary($folder);
+                            $result = $photo['photo']->storeOnCloudinary($folder);
                             $url = $result->getSecurePath(); 
                             $public_id = $result->getPublicId();
                             
                             $publics_id[] = $public_id;
-                            $data_role_photo = Role_photo::create(['DVD_id' => $DVD->id, 'role_id' => $data_role->id,  'order' => 1, 'public_id' => $public_id, 'url' => $url]);
+                            Role_photo::create(['DVD_id' => $DVD->id, 'role_id' => $data_role->id,  'order' => $photo['order'], 'public_id' => $public_id, 'url' => $url]);
                         }
                     }
                 }
@@ -387,8 +387,10 @@ class DVDController extends BaseController
             $roles_id = array();
             $delete_roles = Role::where('DVD_id', $id)->get()->pluck('id')->toArray();
             $delete_role_photos = Role_photo::where('DVD_id', $id)->get()->pluck('id')->toArray();
+            $delete_public_ids = array_merge($delete_public_ids, Role_photo::where('DVD_id', $id)->get()->pluck('public_id')->toArray());
             $not_delete_roles = array();
             $not_delete_role_photos = array();
+            $not_delete_public_ids = array();
             if($roles){
                 foreach($roles as $role) {
                     $group_id = null;
@@ -405,47 +407,51 @@ class DVDController extends BaseController
                     }
                     array_push($roles_id, ['role_id' => $role['id'] ? $role['id'] : $data_role->id, 'key' => $role['key']]);
 
-                    foreach($role['photo'] as $role_photo) {
-                        if($role_photo['public_id']) {
-                            // 元々：写真があった
-                            if($role_photo['photo']) {
-                                // 何もしない or 編集
-                                $not_delete_role_photos[] = $role_photo['id'];
-                                if(!$role_photo['url']) {
+                    if(!empty($role['photo'])) {
+                        foreach($role['photo'] as $role_photo) {
+                            if($role_photo['public_id']) {
+                                if($role_photo['photo']) {
                                     // 編集
-                                     // Cloudinaryにファイルを保存する
+                                    $not_delete_role_photos[] = $role_photo['id'];
+                                    if(!$role_photo['url']) {
+                                        // 写真変更
+                                        // Cloudinaryにファイルを保存する
+                                        $result = $role_photo['photo']->storeOnCloudinary($folder);
+                                        $url = $result->getSecurePath(); 
+                                        $public_id = $result->getPublicId();
+    
+                                        $new_publics_id[] = $public_id;
+                                        Role_photo::find($role_photo['id'])->fill(['order' => $role_photo['order'], 'public_id' => $public_id, 'url' => $url])->save();
+                                    } else {
+                                        // 順番変更（変更がある場合のみ編集がかかるようにしてある）
+                                        Role_photo::find($role_photo['id'])->fill(['order' => $role_photo['order']])->save();
+                                        $not_delete_public_ids[] = $role_photo['public_id'];
+                                    }
+                                }
+                            } else {
+                                if($role_photo['photo']) {
+                                    // 新規
                                     $result = $role_photo['photo']->storeOnCloudinary($folder);
                                     $url = $result->getSecurePath(); 
                                     $public_id = $result->getPublicId();
-
-                                    $delete_public_ids[] = $role_photo['public_id'];
+                                    
                                     $new_publics_id[] = $public_id;
-                                    Role_photo::find($role_photo['id'])->fill(['public_id' => $public_id, 'url' => $url])->save();
+                                    Role_photo::create(['DVD_id' => $id, 'order' => $role_photo['order'], 'role_id' => $role['id'], 'public_id' => $public_id, 'url' => $url]);
                                 }
-                            } else {
-                                // 削除
-                                $delete_public_ids[] = $role_photo['public_id'];
-                            }
-                        } else {
-                            // 元々：写真がなかった
-                            if($role_photo['photo']) {
-                                // 新規
-                                $result = $role_photo['photo']->storeOnCloudinary($folder);
-                                $url = $result->getSecurePath(); 
-                                $public_id = $result->getPublicId();
-                                
-                                $new_publics_id[] = $public_id;
-                                Role_photo::create(['DVD_id' => $id, 'order' => 1, 'role_id' => $role['id'], 'public_id' => $public_id, 'url' => $url]);
                             }
                         }
                     }
+                    
                 }
             }
             $delete_role_photos = array_diff($delete_role_photos, $not_delete_role_photos);
             $delete_role_photos = array_values($delete_role_photos);
             if(!empty($delete_role_photos)){
                 Role_photo::destroy($delete_role_photos);
-            }
+            }            
+            $delete_public_ids = array_diff($delete_public_ids, $not_delete_public_ids);
+            $delete_public_ids = array_values($delete_public_ids);
+
             $delete_roles = array_diff($delete_roles, $not_delete_roles);
             $delete_roles = array_values($delete_roles);
             if(!empty($delete_roles)) {
@@ -577,7 +583,7 @@ class DVDController extends BaseController
                             // 順番変更（変更がある場合のみ編集がかかるようにしてある）
                             Photo::find($photo['id'])->fill(['order' => $photo['order']])->save();
                             $not_delete_public_ids[] = $photo['public_id'];
-                        }                        
+                        }
                     } else {
                         // 新規
                         $result = $photo['photo']->storeOnCloudinary($folder);
