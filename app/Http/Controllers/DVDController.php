@@ -262,14 +262,14 @@ class DVDController extends BaseController
             
             if($photos){
                 foreach($photos as $photo) {                    
-                    if($photo){
+                    if($photo['photo']){
                         // Cloudinaryにファイルを保存する
-                        $result = $photo->storeOnCloudinary($folder);
+                        $result = $photo['photo']->storeOnCloudinary($folder);
                         $url = $result->getSecurePath(); 
                         $public_id = $result->getPublicId();
                         
                         $publics_id[] = $public_id;
-                        $data_photo = Photo::create(['DVD_id' => $DVD->id, 'order' => 1, 'public_id' => $public_id, 'url' => $url]);
+                        $data_photo = Photo::create(['DVD_id' => $DVD->id, 'order' => (int)$photo['order'], 'public_id' => $public_id, 'url' => $url]);
                     }
                 }
             }
@@ -326,7 +326,7 @@ class DVDController extends BaseController
         $url_youtube = !empty($request->url_youtube) ? $request->url_youtube : null;
         $category = !empty($request->category) ? (int)$request->category : null;
         $new_publics_id = array();
-        $delete_publics_id = array();
+        $delete_public_ids = array();
 
         DB::beginTransaction();
 
@@ -418,13 +418,13 @@ class DVDController extends BaseController
                                     $url = $result->getSecurePath(); 
                                     $public_id = $result->getPublicId();
 
-                                    $delete_publics_id[] = $role_photo['public_id'];
+                                    $delete_public_ids[] = $role_photo['public_id'];
                                     $new_publics_id[] = $public_id;
                                     Role_photo::find($role_photo['id'])->fill(['public_id' => $public_id, 'url' => $url])->save();
                                 }
                             } else {
                                 // 削除
-                                $delete_publics_id[] = $role_photo['public_id'];
+                                $delete_public_ids[] = $role_photo['public_id'];
                             }
                         } else {
                             // 元々：写真がなかった
@@ -556,40 +556,36 @@ class DVDController extends BaseController
             }
 
             $delete_photos = Photo::where('DVD_id', $id)->get()->pluck('id')->toArray();
+            $delete_public_ids = array_merge($delete_public_ids, Photo::where('DVD_id', $id)->get()->pluck('public_id')->toArray());
             $not_delete_photos = array();
+            $not_delete_public_ids = array();
             if($photos){
                 foreach($photos as $photo) { 
                     if($photo['public_id']) {
-                        // 元々：写真があった
-                        if($photo['photo']) {
-                            // 何もしない or 編集
-                            $not_delete_photos[] = $photo['id'];
-                            if(!$photo['url']) {
-                                // 編集
-                                 // Cloudinaryにファイルを保存する
-                                $result = $photo['photo']->storeOnCloudinary($folder);
-                                $url = $result->getSecurePath(); 
-                                $public_id = $result->getPublicId();
-
-                                $delete_publics_id[] = $photo['public_id'];
-                                $new_publics_id[] = $public_id;
-                                Photo::find($photo['id'])->fill(['public_id' => $public_id, 'url' => $url])->save();
-                            }
-                        } else {
-                            // 削除
-                            $delete_publics_id[] = $photo['public_id'];
-                        }
-                    } else {
-                        // 元々：写真がなかった
-                        if($photo['photo']) {
-                            // 新規
+                        // 編集
+                        $not_delete_photos[] = $photo['id'];
+                        if(!$photo['url']) {
+                            // 写真変更
+                            // Cloudinaryにファイルを保存する
                             $result = $photo['photo']->storeOnCloudinary($folder);
                             $url = $result->getSecurePath(); 
                             $public_id = $result->getPublicId();
-                            
+
                             $new_publics_id[] = $public_id;
-                            Photo::create(['DVD_id' => $id, 'role_id' => $role['id'], 'order' => 1, 'public_id' => $public_id, 'url' => $url]);
-                        }
+                            Photo::find($photo['id'])->fill(['order' => $photo['order'], 'public_id' => $public_id, 'url' => $url])->save();
+                        } else {
+                            // 順番変更（変更がある場合のみ編集がかかるようにしてある）
+                            Photo::find($photo['id'])->fill(['order' => $photo['order']])->save();
+                            $not_delete_public_ids[] = $photo['public_id'];
+                        }                        
+                    } else {
+                        // 新規
+                        $result = $photo['photo']->storeOnCloudinary($folder);
+                        $url = $result->getSecurePath(); 
+                        $public_id = $result->getPublicId();
+                        
+                        $new_publics_id[] = $public_id;
+                        Photo::create(['DVD_id' => $id, 'order' => $photo['order'], 'public_id' => $public_id, 'url' => $url]);
                     }
                 }
             }
@@ -598,12 +594,14 @@ class DVDController extends BaseController
             if(!empty($delete_photos)) { 
                 Photo::destroy($delete_photos);
             }
+            $delete_public_ids = array_diff($delete_public_ids, $not_delete_public_ids);
+            $delete_public_ids = array_values($delete_public_ids);
 
             DB::commit();
 
-            if(!empty($delete_publics_id)) {
-                foreach($delete_publics_id as $public_id) {
-                    Cloudinary::destroy($public_id);
+            if(!empty($delete_public_ids)) {
+                foreach($delete_public_ids as $delete_public_id) {
+                    Cloudinary::destroy($delete_public_id);
                 }
             }
         }catch (\Exception $exception) {

@@ -621,17 +621,47 @@
               写真
             </div>
 
-            <label for="add_photo" class="add-photo-button">選択</label>
-            <input type="file" id="add_photo" class="add-photo" @change="previewFile">
-            <div class="add-photo-preview-area">
-              <output v-if="registerForm.preview" class="add-photo-output">
-                <button class="add-photo-resetbutton" @click="resetPhoto(index)"><i class="fa-solid fa-xmark"></i></button>
-                <img :src="registerForm.preview" alt="" class="add-photo-preview" >
-              </output>
-            </div>                      
+            <div class="add-photos-button-block">
+              <!-- 中身 -->
+              <div class="add-photos-area">
+                <draggable v-model="registerForm.photoList" group="photoList" item-key="key" tag="section" class="add-photos-block">
+                  <!-- 1セット -->
+                  <template #item="{element : photo, index: index}">
+                    <div class="add-photo-block">
+                      <label :for='"add_photo_" + index' class="add-photo-button">選択</label>
+                      <input type="file" :id='"add_photo_" + index' class="add-photo" @change="previewFile(index, $event)">
+                      <div class="add-photo-preview-area">
+                        <output v-if="photo.preview" class="add-photo-output">
+                          <button class="add-photo-resetbutton" @click="resetPhoto(index)"><i class="fa-solid fa-xmark"></i></button>
+                          <img :src="photo.preview" alt="" class="add-photo-preview" >
+                        </output>
+                      </div>                      
 
-            <div v-if="errors.photo.pres" class="add-error-message-photo">{{ errors.photo.pres }}</div>
-          </div>      
+                      <div v-if="errors.photos[index]" class="add-error-message-photo">{{ errors.photos[index] }}</div>
+                    </div>
+                  </template>
+                </draggable>
+              </div>
+
+              <!-- フォームボタン -->
+              <div class="add-add-minus-button-area">
+                <div ref="add_minus_button_area_photos_form" class="add-minus-button-area" style="visibility: hidden">
+                  <button type="button" class="add-add-button" @click="minusPhotoForm">
+                    <div class="add-add-button-icon">
+                      <i class="fa-solid fa-minus"></i>
+                    </div>
+                  </button>
+                </div>
+                <div ref="add_add_button_area_photos_form" class="add-add-button-area">
+                  <button type="button" class="add-add-button" @click="plusPhotoForm">
+                    <div class="add-add-button-icon">
+                      <i class="fa-solid fa-plus"></i>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
 
         </div>
 
@@ -752,8 +782,7 @@
           historyList: [{title: null, history: null}],
           songList: [{title: null, singers: [{type: 'role', role_key: '', group_key: '', name: null}], impression: null}],
           otherList: [{title: null, impression: null}],
-          preview: null,
-          photo: '',
+          photoList: [{preview: null, photo: ''}],
           format: 1,
           official: true,
           special: false,
@@ -773,8 +802,10 @@
             roleImpression: null,
             pres: null
           },
+          photos: [null],
           error: null,
         },
+        
         optionPrefectures : [
           { title:'北海道', value :1 },
           { title:'青森県', value :2 },
@@ -958,18 +989,18 @@
       },
 
       // 写真プレビュー
-      previewFile(event) {
-        this.errors.photo.pres = null;
+      previewFile(index, event) {
+        this.errors.photos[index] = null;
         // 何も選択されていなかったら処理中断
         if (event.target.files.length === 0) {
-          this.resetPhoto();
+          this.resetPhoto(index);
           return false;
         }
 
         // ファイルが画像ではなかったら処理中断
-        if (! event.target.files[0].type.match('image.*')) {
-          this.resetPhoto();
-          this.errors.photo.pres = '写真データを選択してください';
+        if (!event.target.files[0].type.match('image.*')) {
+          this.resetPhoto(index);
+          this.errors.photos[index] = '写真データを選択してください';
           return false;
         }
 
@@ -982,21 +1013,21 @@
           // previewに値が入ると<output>につけたv-ifがtrueと判定される
           // また<output>内部の<img>のsrc属性はpreviewの値を参照しているので
           // 結果として画像が表示される
-          this.registerForm.preview = e.target.result;
+          this.registerForm.photoList[index].preview = e.target.result;
         }
 
         // ファイルを読み込む
         // 読み込まれたファイルはデータURL形式で受け取れる（上記onload参照）
         reader.readAsDataURL(event.target.files[0]);
     
-        this.registerForm.photo = event.target.files[0];
+        this.registerForm.photoList[index].photo = event.target.files[0];
       },
 
       // 画像をクリアするメソッド
-      resetPhoto() {
-        this.registerForm.preview = null;
-        this.registerForm.photo = '';
-        document.getElementById('add_photo').value = null;
+      resetPhoto(index) {
+        this.registerForm.photoList[index].preview = null;
+        this.registerForm.photoList[index].photo = '';
+        document.getElementById('add_photo_' + index).value = null;
       },
 
       // データ送信
@@ -1195,7 +1226,16 @@
         };
         count = 0;
 
-        formData.append('photo[]', this.registerForm.photo ? this.registerForm.photo : '');
+        for(let i = 0; i < this.registerForm.photoList.length; i++) {
+          const photo = this.registerForm.photoList[i];
+
+          if(photo.photo) {
+            formData.append('photo[' + count + '][order]', count + 1);
+            formData.append('photo[' + count + '][photo]', photo.photo);
+            count++;
+          }
+        }
+        count = 0;
 
         formData.append('format', this.registerForm.format == 1 ? 1 : 2);
         formData.append('official', this.registerForm.official ? 1 : 0);
@@ -1317,7 +1357,7 @@
           songList: [{title: null, singers: [{type: 'role', role_key: '', group_key: '', name: null}], impression: null}],
           otherList: [{title: null, impression: null}],
           preview: null,
-          photo: '',
+          photoList: [{preview: null, photo: ''}],
           format: 1,
           official: true,
           special: false,
@@ -1337,6 +1377,7 @@
             roleImpression: null,
             pres: null
           },
+          photos: [null],
           error: null,
         };
 
@@ -1346,7 +1387,11 @@
         }
 
         // 写真
-        this.resetPhoto();
+        let photos = [].slice.call(document.querySelectorAll('[id^="add_photo_"]'));
+        photos.forEach(photo => {
+          photo.value = null;
+        });
+
         let roleImpresionsPhotos = [].slice.call(document.querySelectorAll('[id^="add_role_impressions_photo_"]'));
         roleImpresionsPhotos.forEach(roleImpresionsPhoto => {
           roleImpresionsPhoto.value = null;
@@ -1731,6 +1776,36 @@
             this.$refs.add_minus_button_area_others_form.style.visibility = 'hidden';
           } else if (this.registerForm.otherList.length === 9) {
             this.$refs.add_add_button_area_others_form.style.visibility = 'visible';
+          }
+        }
+      },
+
+      // 写真フォーム
+      plusPhotoForm() {
+        if(this.registerForm.photoList.length < 10) {
+          // 追加
+          this.registerForm.photoList.push({
+            preview: null, photo: ''
+          });
+          this.errors.photos.push(null);
+
+          if(this.registerForm.photoList.length === 2) {
+            this.$refs.add_minus_button_area_photos_form.style.visibility = 'visible';
+          } else if (this.registerForm.photoList.length === 10) {
+            this.$refs.add_add_button_area_photos_form.style.visibility = 'hidden';
+          }
+        }
+      },
+      minusPhotoForm() {
+        if(this.registerForm.photoList.length > 1) {
+          // 削除
+          this.registerForm.photoList.pop();
+          this.errors.photos.pop();
+
+          if(this.registerForm.photoList.length === 1){
+            this.$refs.add_minus_button_area_photos_form.style.visibility = 'hidden';
+          } else if (this.registerForm.photoList.length === 9) {
+            this.$refs.add_add_button_area_photos_form.style.visibility = 'visible';
           }
         }
       }

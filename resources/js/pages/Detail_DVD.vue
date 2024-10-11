@@ -899,28 +899,54 @@
                 写真
               </div>
 
-              <label for="detail_photo" class="add-photo-button">選択</label>
-              <input type="file" id="detail_photo" class="add-photo" @change="previewFile">
-              <div class="add-photo-preview-area">
-                <!-- 写真 -->
-                <div v-if="editDVD.photos[0]">
-                  <div v-if="editDVD.photos[0].url && editDVD.photos[0].photo === 1">
-                    <output class="add-role-impressions-photo-output">
-                      <button type="button" class="add-photo-resetbutton" @click="deletePhoto"><i class="fa-solid fa-xmark"></i></button>
-                      <img :src="editDVD.photos[0].url" :alt="editDVD.photos[0].title" class="add-photo-preview">
-                    </output>
+              <div class="add-photos-button-block">
+                <!-- 中身 -->
+                <div class="add-photos-area">
+                  <draggable v-model="editDVD.photos" group="photos" item-key="key" tag="section" class="add-photos-block">
+                    <!-- 1セット -->
+                    <template #item="{element : photo, index: index}">
+                      <div class="add-photo-block">
+                        <label :for='"detail_photo_" + index' class="add-photo-button">選択</label>
+                        <input type="file" :id='"detail_photo_" + index' class="add-photo" @change="previewFile(index, $event)">
+                        <div class="add-photo-preview-area">
+                          <div v-if="photo.url && photo.photo === 1">
+                            <output class="add-role-impressions-photo-output">
+                              <button type="button" class="add-photo-resetbutton" @click="deletePhoto(index)"><i class="fa-solid fa-xmark"></i></button>
+                              <img :src="photo.url" :alt="DVD.title" class="add-photo-preview">
+                            </output>
+                          </div>
+                          <div v-else-if="photo.photo">
+                            <output v-if="photo.preview" class="add-role-impressions-photo-output">
+                              <button type="button" class="add-photo-resetbutton" @click="resetPhoto(index)"><i class="fa-solid fa-xmark"></i></button>
+                              <img :src="photo.preview" alt="" class="add-photo-preview">
+                            </output>
+                          </div>
+                        </div>                      
+
+                        <div v-if="errors.photos[index]" class="add-error-message-photo">{{ errors.photos[index] }}</div>
+                      </div>
+                    </template>
+                  </draggable>
+                </div>
+
+                <!-- フォームボタン -->
+                <div class="add-add-minus-button-area">
+                  <div ref="detail_minus_button_area_photos_form" class="add-minus-button-area" style="visibility: hidden">
+                    <button type="button" class="add-add-button" @click="minusPhotoForm">
+                      <div class="add-add-button-icon">
+                        <i class="fa-solid fa-minus"></i>
+                      </div>
+                    </button>
                   </div>
-                  <div v-else-if="editDVD.photos[0].photo">
-                    <output v-if="editDVD.photos[0].preview" class="add-role-impressions-photo-output">
-                      <button type="button" class="add-photo-resetbutton" @click="resetPhoto"><i class="fa-solid fa-xmark"></i></button>
-                      <img :src="editDVD.photos[0].preview" alt="" class="add-photo-preview">
-                    </output>
+                  <div ref="detail_add_button_area_photos_form" class="add-add-button-area">
+                    <button type="button" class="add-add-button" @click="plusPhotoForm">
+                      <div class="add-add-button-icon">
+                        <i class="fa-solid fa-plus"></i>
+                      </div>
+                    </button>
                   </div>
                 </div>
-                
-              </div>                      
-
-              <div v-if="errors.photo.pres" class="add-error-message-photo">{{ errors.photo.pres }}</div>
+              </div>
             </div>
 
             <!-- 貸出記録 -->
@@ -1130,6 +1156,7 @@ export default {
           roleImpression: null,
           pres: null
         },
+        photos: [],
         error: null,
       },
 
@@ -1262,6 +1289,7 @@ export default {
         song.singers.sort((a, b) => a.order - b.order);
       });
       this.DVD.others.sort((a, b) => a.order - b.order);
+      this.DVD.photos.sort((a, b) => a.order - b.order);
 
       this.originalDVD = JSON.parse(JSON.stringify(this.DVD));
       if(this.originalDVD.rents) {
@@ -1383,15 +1411,21 @@ export default {
       this.editDVD.others = this.originalDVD.others ? this.originalDVD.others : null;
 
       if(this.originalDVD.photos.length) {
-        this.editDVD.photos[0] = new Object();
-        this.editDVD.photos[0].public_id = this.originalDVD.photos[0].public_id;
-        this.editDVD.photos[0].url = this.originalDVD.photos[0].url;
-        this.editDVD.photos[0].id = this.originalDVD.photos[0].id;
-        this.editDVD.photos[0].photo = 1;
+        this.originalDVD.photos.forEach((photo, index) => {
+          this.editDVD.photos[index] = new Object();
+          this.editDVD.photos[index].id = photo.id;
+          this.editDVD.photos[index].order = photo.order;
+          this.editDVD.photos[index].public_id = photo.public_id;
+          this.editDVD.photos[index].url = photo.url;
+          this.editDVD.photos[index].photo = 1;
+
+          this.errors.photos.push(null);
+        });
+        this.editDVD.photos.sort((a, b) => a.order - b.order);
       } else {
-        this.editDVD.photos[0] = new Object();
-        this.editDVD.photos[0].photo = 0;
+        this.editDVD.photos = null;
       }
+      
       this.editDVD.rents = this.originalDVD.rents ? this.originalDVD.rents : null;
 
       this.editDVD.format = this.originalDVD.format;
@@ -1545,6 +1579,22 @@ export default {
           }
         }
 
+        if(!this.editDVD.photos.length) {
+          this.plusPhotoForm();
+        } else {
+          if(this.editDVD.photos.length < 10) {
+            this.$refs.detail_add_button_area_photos_form.style.visibility = 'visible';
+          } else {
+            this.$refs.detail_add_button_area_photos_form.style.visibility = 'hidden';
+          }
+          
+          if(this.editDVD.photos.length > 1) {
+            this.$refs.detail_minus_button_area_photos_form.style.visibility = 'visible';
+          } else {
+            this.$refs.detail_minus_button_area_photos_form.style.visibility = 'hidden';
+          }
+        }
+
         // ふりがなのinput要素のidは省略可能
         autokana = AutoKana.bind('#detail_title');
 
@@ -1684,18 +1734,18 @@ export default {
     },
 
     // 写真プレビュー
-    previewFile(event) {
-      this.errors.photo.pres = null;
+    previewFile(index, event) {
+      this.errors.photos[index] = null;
       // 何も選択されていなかったら処理中断
       if (event.target.files.length === 0) {
-        this.resetPhoto();
+        this.resetPhoto(index);
         return false;
       }
 
       // ファイルが画像ではなかったら処理中断
       if (!event.target.files[0].type.match('image.*')) {
-        this.resetPhoto();
-        this.errors.photo.pres = '写真データを選択してください';
+        this.resetPhoto(index);
+        this.errors.photos[index] = '写真データを選択してください';
         return false;
       }
 
@@ -1708,28 +1758,28 @@ export default {
         // previewに値が入ると<output>につけたv-ifがtrueと判定される
         // また<output>内部の<img>のsrc属性はpreviewの値を参照しているので
         // 結果として画像が表示される
-        this.editDVD.photos[0].preview = e.target.result;
+        this.editDVD.photos[index].preview = e.target.result;
       }
 
       // ファイルを読み込む
       // 読み込まれたファイルはデータURL形式で受け取れる（上記onload参照）
       reader.readAsDataURL(event.target.files[0]);
-      if(this.editDVD.photos[0].photo === 1) {
-        this.deletePhoto();
+      if(this.editDVD.photos[index].photo === 1) {
+        this.deletePhoto(index);
       }
-      this.editDVD.photos[0].photo = event.target.files[0];
+      this.editDVD.photos[index].photo = event.target.files[0];
     },
 
     // 写真を見せない
-    deletePhoto(){
-      this.editDVD.photos[0].photo = 0;
-      this.editDVD.photos[0].url = '';
+    deletePhoto(index){
+      this.editDVD.photos[index].photo = 0;
+      this.editDVD.photos[index].url = '';
     },
     // 画像をクリアするメソッド
-    resetPhoto() {
-      this.editDVD.photos[0].preview = null;
-      this.editDVD.photos[0].photo = 0;
-      document.getElementById('detail_photo').value = null;
+    resetPhoto(index) {
+      this.editDVD.photos[index].preview = null;
+      this.editDVD.photos[index].photo = 0;
+      document.getElementById('detail_photo_' + index).value = null;
     },
 
     // 貸出記録抹消
@@ -1946,6 +1996,23 @@ export default {
       }
       if(!this.editDVD.others.length) {
         this.plusOtherForm();
+      }
+
+      this.editDVD.photos = this.editDVD.photos.filter(photo => photo.photo ? photo : null);
+      for(let i = 0; i < this.editDVD.photos.length; i++) {
+        this.editDVD.photos[i].order = i + 1;
+      }
+      if(!this.flag && this.originalEditDVD.photos.length === this.editDVD.photos.length) {
+        this.originalEditDVD.photos.forEach((photo, index) => {
+          if(photo.id !== this.editDVD.photos[index].id || photo.order !== this.editDVD.photos[index].order || photo.photo !== this.editDVD.photos[index].photo ) {
+            this.flag = 1;
+          }
+        });
+      } else {
+        this.flag = 1;
+      }
+      if(!this.editDVD.photos.length) {
+        this.plusPhotoForm();
       }
       
       // タイトル（ふりがな）正規表現
@@ -2202,7 +2269,7 @@ export default {
             }
           }
         });
-        count = 0
+        count = 0;
         
         this.editDVD.others.forEach(other => {
           let other_title_flag = 0;
@@ -2222,7 +2289,7 @@ export default {
 
           if(other_title_flag || other_impression_flag) {
             formData.append('other[' + count + '][id]', other.id ? other.id : '');
-            formData.append('other[' + count + '][order]', other.order);
+            formData.append('other[' + count + '][order]', count + 1);
             formData.append('other[' + count + '][title]', other_title_flag ? other.title : '');
             formData.append('other[' + count + '][impression]', other_impression_flag ? other.impression : '');
             count++;
@@ -2230,10 +2297,17 @@ export default {
         });
         count = 0
         
-        formData.append('photo[' + count + '][id]', this.editDVD.photos[0].id ? this.editDVD.photos[0].id : '');
-        formData.append('photo[' + count + '][public_id]', this.editDVD.photos[0].public_id ? this.editDVD.photos[0].public_id : '');
-        formData.append('photo[' + count + '][url]', this.editDVD.photos[0].url ? this.editDVD.photos[0].url : '');
-        formData.append('photo[' + count + '][photo]', this.editDVD.photos[0].photo ? this.editDVD.photos[0].photo : '');
+        this.editDVD.photos.forEach(photo => {
+          if(photo.photo) {
+            formData.append('photo[' + count + '][id]', photo.id ? photo.id : '');
+            formData.append('photo[' + count + '][order]', photo.photo ? count + 1 : '');
+            formData.append('photo[' + count + '][public_id]', photo.public_id ? photo.public_id : '');
+            formData.append('photo[' + count + '][url]', photo.url ? photo.url : '');
+            formData.append('photo[' + count + '][photo]', photo.photo);
+            count++;
+          }
+        });
+        count = 0;
 
         formData.append('format', this.editDVD.format);
         formData.append('official', this.editDVD.official ? 1 : 0);
@@ -2423,6 +2497,7 @@ export default {
           roleImpression: null,
           pres: null
         },
+        photos: [],
         error: null,
       };
 
@@ -2431,7 +2506,10 @@ export default {
       this.flagRent = 0;
 
       // 写真
-      document.getElementById('detail_photo').value = null;
+      let photos = [].slice.call(document.querySelectorAll('[id^="detail_photo_"]'));
+      photos.forEach(photo => {
+        photo.value = null;
+      });
 
       let roleImpresionsPhotos = [].slice.call(document.querySelectorAll('[id^="detail_role_impressions_photo_"]'));
       roleImpresionsPhotos.forEach(roleImpresionsPhoto => {
@@ -2847,6 +2925,36 @@ export default {
           this.$refs.detail_minus_button_area_others_form.style.visibility = 'hidden';
         } else if (this.editDVD.others.length === 9) {
           this.$refs.detail_add_button_area_others_form.style.visibility = 'visible';
+        }
+      }
+    },
+
+    // 写真フォーム
+    plusPhotoForm() {
+      if(this.editDVD.photos.length < 10) {
+        // 追加
+        this.editDVD.photos.push({
+          id: null, preview: null, photo: ''
+        });
+        this.errors.photos.push(null);
+
+        if(this.editDVD.photos.length === 2) {
+          this.$refs.detail_minus_button_area_photos_form.style.visibility = 'visible';
+        } else if (this.editDVD.photos.length === 10) {
+          this.$refs.detail_add_button_area_photos_form.style.visibility = 'hidden';
+        }
+      }
+    },
+    minusPhotoForm() {
+      if(this.editDVD.photos.length > 1) {
+        // 削除
+        this.editDVD.photos.pop();
+        this.errors.photos.pop();
+
+        if(this.editDVD.photos.length === 1){
+          this.$refs.detail_minus_button_area_photos_form.style.visibility = 'hidden';
+        } else if (this.editDVD.photos.length === 9) {
+          this.$refs.detail_add_button_area_photos_form.style.visibility = 'visible';
         }
       }
     },
