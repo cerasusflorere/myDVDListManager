@@ -172,15 +172,17 @@
               <div ref="detail_show_role_impression_headers">【{{ roleImpression.role }} <span><span class="detail-show-role-impression-detail-small">(by {{ roleImpression.player }})</span>】</span></div>
               <div class="detail-show-role-impression-detail-impression">{{ roleImpression.impression }}</div>
             </div>
-            <div class="detail-show-role-impression-photo">
-              <figure v-if="roleImpression.photos[0]" class="detail-show-role-impression-photo-wrapper">
-                <img
-                  class="detail-show-role-impression-photo-image"
-                  :src="roleImpression.photos[0].url"
-                  :alt="roleImpression.role"
-                >
-                <input type="button" class="detail-show-photo-button" @click="openModal_photo(roleImpression.photos[0].url)">
-              </figure>
+            <div v-if="roleImpression.photos" class="detail-show-role-impression-photo">
+              <div v-for="roleImpresionsPhoto in roleImpression.photos">
+                <figure v-if="roleImpresionsPhoto.url" class="detail-show-role-impression-photo-wrapper">
+                  <img
+                    class="detail-show-role-impression-photo-image"
+                    :src="roleImpresionsPhoto.url"
+                    :alt="roleImpression.role"
+                  >
+                  <input type="button" class="detail-show-photo-button" @click="openModal_photo(roleImpresionsPhoto.url)">
+                </figure>
+              </div>              
             </div>
           </div>
         </div>
@@ -258,6 +260,7 @@
           <div class="detail-show-rent-area" v-for="rent in DVD.rents">
             <div class="detail-show-rent-name">{{ rent.name }}</div>
             <div class="detail-show-rent-start">{{ rent.start_date }}</div>
+            <div class="detail-show-rent-start">{{ rent.return_date }}</div>
             <div class="detail-show-rent-flag" v-if="rent.flag"><i class="fas fa-check fa-fw"></i></div>
           </div>
         </div>        
@@ -589,11 +592,11 @@
 
                 <!-- 中身 -->
                 <div id="add_role_impressions_bodyblock" class="add-role-impression-bodyblock">
-                  <section v-for="(roleImpression, index) in editDVD.roleImpressionList" :key="index">
+                  <section v-for="(roleImpression, roleImpressionIndex) in editDVD.roleImpressionList" :key="index">
                     <!-- 1セット -->
                     <div class="add-role-impressions-bodyline">
                       <div class="add-roles-impressions-cell add-role-impressions-body-cell add-role-impressions-cell-role">
-                        <select class="add-role-impressions-input add-role-impressions-role" v-model="roleImpression.role_key" @change="chooseRole(index)">
+                        <select class="add-role-impressions-input add-role-impressions-role" v-model="roleImpression.role_key" @change="chooseRole(roleImpressionIndex)">
                           <option value="">選択</option>
                           <option v-for="role in optionRoles" 
                             :value="role.key">
@@ -605,33 +608,54 @@
                         <textarea class="add-role-impressions-input add-role-impressions-impression" v-model="roleImpression.impression" placeholder="どうだった？"></textarea>  
                       </div>
                       <div class="add-roles-impressions-cell add-role-impressions-body-cell add-role-impressions-cell-photo">
-                        <label :for="'add_role_impressions_photo_' + index" class="add-role-impressions-input add-role-impressions-photo-button">選択</label>
-                        <input type="file" :id="'add_role_impressions_photo_' + index" class="add-role-impressions-photo" @change="previewFileRoleImpression(index, $event)">
-                        <div class="add-role-impressions-photo-area">
-                          <!-- 写真 -->
-                          <div v-if="roleImpression.photos[0]">
-                            <div v-if="roleImpression.photos[0].url && roleImpression.photos[0].photo === 1">
-                              <output class="add-role-impressions-photo-output">
-                                <button type="button" class="add-role-impressions-photo-resetbutton" @click="deletePhotoRoleImpression(index)"><i class="fa-solid fa-xmark"></i></button>
-                                <img :src="roleImpression.photos[0].url" :alt="roleImpression.photos[0].role" style="max-height: 12em">
-                              </output>
-                            </div>
-                            <div v-else-if="roleImpression.photos[0].photo">
-                              <output v-if="roleImpression.photos[0].preview" class="add-role-impressions-photo-output">
-                                <button type="button" class="add-role-impressions-photo-resetbutton" @click="resetPhotoRoleImpression(index)"><i class="fa-solid fa-xmark"></i></button>
-                                <img :src="roleImpression.photos[0].preview" alt="" style="max-height: 12em">
-                              </output>
-                            </div>
-                          </div>                          
-                        </div>                      
+                        <draggable v-model="roleImpression.photos" group="roleImpressionPhotos" item-key="key" tag="section" class="add-role-impression-photos-block">
+                          <!-- 1セット -->
+                          <template #item="{element : photo, index: roleImpressionPhotoIndex}">
+                            <div class="add-photo-block">
+                              <label :for="'detail_role_impressions_photo_' + roleImpressionIndex + '_' + roleImpressionPhotoIndex" class="add-role-impressions-input add-role-impressions-photo-button">選択</label>
+                              <input type="file" :id="'detail_role_impressions_photo_' + roleImpressionIndex + '_' + roleImpressionPhotoIndex" class="add-role-impressions-photo" @change="previewFileRoleImpression(roleImpressionIndex, roleImpressionPhotoIndex, $event)">
+                              <div class="add-role-impressions-photo-area">
+                                <div v-if="photo.url && photo.photo === 1">
+                                  <output class="add-role-impressions-photo-output">
+                                    <button type="button" class="add-role-impressions-photo-resetbutton" @click="deletePhotoRoleImpression(roleImpressionIndex, roleImpressionPhotoIndex)"><i class="fa-solid fa-xmark"></i></button>
+                                    <img :src="photo.url" :alt="roleImpression.role" class="add-role-impressions-photo-preview">
+                                  </output>
+                                </div>
+                                <div v-else-if="photo.photo">
+                                  <output v-if="photo.preview" class="add-role-impressions-photo-output">
+                                    <button type="button" class="add-role-impressions-photo-resetbutton" @click="resetPhotoRoleImpression(roleImpressionIndex, roleImpressionPhotoIndex)"><i class="fa-solid fa-xmark"></i></button>
+                                    <img :src="photo.preview" alt="" class="add-role-impressions-photo-preview">
+                                  </output>
+                                </div>
 
-                        <div v-if="errors.photo.roleImpression" class="add-error-message-role-impressions-photo">{{ errors.photo.roleImpression }}</div>
+                                <div v-if="errors.roleImpressions[roleImpressionIndex].photos[roleImpressionPhotoIndex]" class="add-error-message-role-impressions-photo">{{ errors.roleImpressions[roleImpressionIndex].photos[roleImpressionPhotoIndex] }}</div>
+                                  
+                              </div>
+                            </div>
+                          </template>
+                        </draggable>
+                        
+                        <!-- フォームボタン -->
+                        <div class="add-add-minus-button-area add-add-minus-button-area-small">
+                          <div ref="detail_minus_button_area_role_impression_photos_form" class="add-minus-button-area add-minus-button-area-small" style="visibility: hidden">
+                            <button type="button" class="add-add-button add-add-button-small" @click="minusRoleImpressionPhotoForm(roleImpressionIndex)">
+                              <div class="add-add-button-icon add-add-button-icon-small">
+                                <i class="fa-solid fa-minus"></i>
+                              </div>
+                            </button>
+                          </div>
+                          <div ref="detail_add_button_area_role_impression_photos_form" class="add-add-button-area add-minus-button-area-small">
+                            <button type="button" class="add-add-button add-add-button-small" @click="plusRoleImpressionPhotoForm(roleImpressionIndex)">
+                              <div class="add-add-button-icon add-add-button-icon-small">
+                                <i class="fa-solid fa-plus"></i>
+                              </div>
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </section>
-                  
-                </div>
-                      
+                  </section>                  
+                </div>                      
               </div>
 
               <!-- フォームボタン -->
@@ -898,29 +922,92 @@
                 写真
               </div>
 
-              <label for="add_photo" class="add-photo-button">選択</label>
-              <input type="file" id="add_photo" class="add-photo" @change="previewFile">
-              <div class="add-photo-preview-area">
-                <!-- 写真 -->
-                <div v-if="editDVD.photos[0]">
-                  <div v-if="editDVD.photos[0].url && editDVD.photos[0].photo === 1">
-                    <output class="add-role-impressions-photo-output">
-                      <button type="button" class="add-photo-resetbutton" @click="deletePhoto"><i class="fa-solid fa-xmark"></i></button>
-                      <img :src="editDVD.photos[0].url" :alt="editDVD.photos[0].title" class="add-photo-preview">
-                    </output>
+              <div class="add-photos-button-block">
+                <!-- 中身 -->
+                <div class="add-photos-area">
+                  <draggable v-model="editDVD.photos" group="photos" item-key="key" tag="section" class="add-photos-block">
+                    <!-- 1セット -->
+                    <template #item="{element : photo, index: index}">
+                      <div class="add-photo-block">
+                        <label :for='"detail_photo_" + index' class="add-photo-button">選択</label>
+                        <input type="file" :id='"detail_photo_" + index' class="add-photo" @change="previewFile(index, $event)">
+                        <div class="add-photo-preview-area">
+                          <div v-if="photo.url && photo.photo === 1">
+                            <output class="add-role-impressions-photo-output">
+                              <button type="button" class="add-photo-resetbutton" @click="deletePhoto(index)"><i class="fa-solid fa-xmark"></i></button>
+                              <img :src="photo.url" :alt="DVD.title" class="add-photo-preview">
+                            </output>
+                          </div>
+                          <div v-else-if="photo.photo">
+                            <output v-if="photo.preview" class="add-role-impressions-photo-output">
+                              <button type="button" class="add-photo-resetbutton" @click="resetPhoto(index)"><i class="fa-solid fa-xmark"></i></button>
+                              <img :src="photo.preview" alt="" class="add-photo-preview">
+                            </output>
+                          </div>
+                        </div>                      
+
+                        <div v-if="errors.photos[index]" class="add-error-message-photo">{{ errors.photos[index] }}</div>
+                      </div>
+                    </template>
+                  </draggable>
+                </div>
+
+                <!-- フォームボタン -->
+                <div class="add-add-minus-button-area">
+                  <div ref="detail_minus_button_area_photos_form" class="add-minus-button-area" style="visibility: hidden">
+                    <button type="button" class="add-add-button" @click="minusPhotoForm">
+                      <div class="add-add-button-icon">
+                        <i class="fa-solid fa-minus"></i>
+                      </div>
+                    </button>
                   </div>
-                  <div v-else-if="editDVD.photos[0].photo">
-                    <output v-if="editDVD.photos[0].preview" class="add-role-impressions-photo-output">
-                      <button type="button" class="add-photo-resetbutton" @click="resetPhoto"><i class="fa-solid fa-xmark"></i></button>
-                      <img :src="editDVD.photos[0].preview" alt="" class="add-photo-preview">
-                    </output>
+                  <div ref="detail_add_button_area_photos_form" class="add-add-button-area">
+                    <button type="button" class="add-add-button" @click="plusPhotoForm">
+                      <div class="add-add-button-icon">
+                        <i class="fa-solid fa-plus"></i>
+                      </div>
+                    </button>
                   </div>
                 </div>
-                
-              </div>                      
+              </div>
+            </div>
 
-              <div v-if="errors.photo.pres" class="add-error-message-photo">{{ errors.photo.pres }}</div>
-            </div>      
+            <!-- 貸出記録 -->
+            <div class="add-area add-others-area" v-if="editDVD.rents.length">
+              <div class="add-header add-header-others">貸出記録</div>
+              <!-- 表 -->
+              <div class="add-others-box detail-edit-rents-width">
+                <!-- ヘッダー -->
+                <div class="add-others-headerline detail-edit-rents-width">
+                  <div class="add-others-cell add-others-header-cell detail-edit-rent-name-cell">貸している人</div>
+                  <div class="add-others-cell add-others-header-cell detail-edit-rent-date-cell">いつから</div>
+                  <div class="add-others-cell add-others-header-cell detail-edit-rent-date-cell">いつまで</div>
+                  <div class="add-others-cell add-others-header-cell detail-edit-rent-button-cell"></div>
+                </div>
+                
+                <!-- 中身 -->
+                <div class="add-others-bodyblock">
+                  <div class="add-others-bodyline" v-for="(rent, index) in editDVD.rents">
+                    <div class="add-others-cell detail-edit-rents-body-cell detail-edit-rent-name-cell">
+                      <input type="text" class="add-others-input detail-edit-rent-input" v-model="rent.name">
+                    </div>
+                    <div class="add-others-cell detail-edit-rents-body-cell detail-edit-rent-date-cell">
+                      <input type="date" class="add-others-input detail-edit-rent-input" v-model="rent.start_date">
+                    </div>                    
+                    <div class="add-others-cell detail-edit-rents-body-cell detail-edit-rent-date-cell">
+                      <input type="date" class="add-others-input detail-edit-rent-input" v-model="rent.return_date">
+                    </div>
+                    <div class="add-others-cell detail-edit-rents-body-cell detail-edit-rent-button-cell">
+                      <button type="button" class="add-add-button detail-edit-rents-button" @click="detailRents(index)">
+                        <div class="add-add-button-icon">
+                          <i class="fa-solid fa-minus"></i>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>               
+              </div>
+            </div>
 
           </div>
 
@@ -1072,6 +1159,7 @@ export default {
         songs: [],
         others: [],
         photos: [],
+        rents: [],
         format: 1,
         official: true,
         special: false,
@@ -1087,12 +1175,16 @@ export default {
       optionRoles : [], // 役名
       // エラー
       errors: {
-        photo: {
-          roleImpression: null,
-          pres: null
-        },
+        roleImpressions: [
+          {photos:[null]}
+        ],
+        photos: [],
         error: null,
       },
+
+      // 編集要否
+      flag: 0,
+      flagRent: 0,
 
       // message
       showContent_message: false,
@@ -1196,12 +1288,12 @@ export default {
       this.DVD = response.data;
       let count = 0;
       this.DVD.roles.forEach(role => {
-        if(role.impression){
+        if(role.impression || role.role_photos.length){
           if(!this.DVD.roleImpressionList) {
             this.DVD.roleImpressionList = [];
           }
           this.DVD.roleImpressionList[count] = new Object();
-          const newRoleImpression = {role_id: role.id, order: role.order, role: role.role, player: role.player, impression: role.impression, photos: role.role_photos};
+          const newRoleImpression = {role_id: role.id, order: role.order, role: role.role, player: role.player, impression: role.impression ? role.impression : null, photos: role.role_photos.length ? role.role_photos : null};
           this.DVD.roleImpressionList[count] = newRoleImpression;
           count++;
         }
@@ -1213,12 +1305,18 @@ export default {
       this.DVD.costumers.sort((a, b) => a.order - b.order );
       this.DVD.roles.sort((a, b) => a.order - b.order );
       this.DVD.roleImpressionList.sort((a, b) => a.order - b.order);
+      this.DVD.roleImpressionList.forEach(roleImpression => {
+        if(roleImpression.photos) {
+          roleImpression.photos.sort((a, b) => a.order - b.order);
+        }
+      });
       this.DVD.role_groups.sort((a, b) => a.order - b.order);
       this.DVD.songs.sort((a, b) => a.order - b.order);
-      this.DVD.songs.forEach((song) => {
+      this.DVD.songs.forEach(song => {
         song.singers.sort((a, b) => a.order - b.order);
       });
       this.DVD.others.sort((a, b) => a.order - b.order);
+      this.DVD.photos.sort((a, b) => a.order - b.order);
 
       this.originalDVD = JSON.parse(JSON.stringify(this.DVD));
       if(this.originalDVD.rents) {
@@ -1260,24 +1358,29 @@ export default {
           this.optionRoles[m].key = key;
           this.optionRoles[m].role = role.role;
           m++;
-        }        
-        if(role.impression) {
+        }
+        if(role.role && (role.impression || role.role_photos.length)) {
           this.editDVD.roleImpressionList[k] = new Object();
           this.editDVD.roleImpressionList[k].role_id = role.id;
           this.editDVD.roleImpressionList[k].order = role.order;
           this.editDVD.roleImpressionList[k].role_key = key;
-          this.editDVD.roleImpressionList[k].impression = role.impression;
-          this.editDVD.roleImpressionList[k].photos = []
+          this.editDVD.roleImpressionList[k].impression = role.impression ? role.impression : null;
+          this.editDVD.roleImpressionList[k].photos = [];
+          this.errors.roleImpressions.push({photos: []});
           if(role.role_photos.length) {
-            this.editDVD.roleImpressionList[k].photos[0] = new Object();
-            this.editDVD.roleImpressionList[k].photos[0].id = role.role_photos[0].id;
-            this.editDVD.roleImpressionList[k].photos[0].public_id = role.role_photos[0].public_id;
-            this.editDVD.roleImpressionList[k].photos[0].url = role.role_photos[0].url;
-            this.editDVD.roleImpressionList[k].photos[0].photo = 1; // 写真が登録されている（可能性：1のまま、0に変更（この時public_idは存在する）、写真バイナリ代入（この時public_idは存在する））
-            this.editDVD.roleImpressionList[k].photos[0].preview = null;
-          } else {
-            this.editDVD.roleImpressionList[k].photos[0] = new Object();
-            this.editDVD.roleImpressionList[k].photos[0].photo = 0; // 写真が登録されていない（可能性：0のまま（この時pubic_idは存在しない）、写真バイナリ代入（この時public_idは存在しない））
+            let l = 0;
+            role.role_photos.forEach(role_photo => {
+              this.editDVD.roleImpressionList[k].photos[l] = new Object();
+              this.editDVD.roleImpressionList[k].photos[l].id = role_photo.id;
+              this.editDVD.roleImpressionList[k].photos[l].order = role_photo.order;
+              this.editDVD.roleImpressionList[k].photos[l].public_id = role_photo.public_id;
+              this.editDVD.roleImpressionList[k].photos[l].url = role_photo.url;
+              this.editDVD.roleImpressionList[k].photos[l].photo = 1; // 写真が登録されている（可能性：1のまま、0に変更（この時public_idは存在する）、写真バイナリ代入（この時public_idは存在する））
+              this.editDVD.roleImpressionList[k].photos[l].preview = null;
+
+              this.errors.roleImpressions[k].photos.push(null);
+              l++
+            });
           }
           k++;
         }
@@ -1285,6 +1388,9 @@ export default {
       this.editDVD.playerList.sort((a, b) => a.order - b.order);
       this.optionRoles.sort((a, b) => a.order - b.order);
       this.editDVD.roleImpressionList.sort((a, b) => a.order = b.order);
+      this.editDVD.roleImpressionList.forEach(roleImpression => {
+        roleImpression.photos.sort((a, b) => a.order - b.order);
+      });
 
       this.originalDVD.role_groups.forEach((group, index) => {
         const key = this.getUniqueStr();
@@ -1313,13 +1419,12 @@ export default {
       this.editDVD.histories.sort((a, b) => a.order - b.order);
       
       this.originalDVD.songs.forEach((song, index) => {
-        const key = this.getUniqueStr();
         this.editDVD.songs[index] = new Object();
         this.editDVD.songs[index].id = song.id;
         this.editDVD.songs[index].order = song.order;
         this.editDVD.songs[index].title = song.title;
         this.editDVD.songs[index].impression = song.impression ? song.impression : null;
-        this.editDVD.songs[index].singers = new Array();
+        this.editDVD.songs[index].singers = [];
 
         song.singers.forEach((singer, index2) => {
           this.editDVD.songs[index].singers[index2] = new Object();
@@ -1341,15 +1446,20 @@ export default {
       this.editDVD.others = this.originalDVD.others ? this.originalDVD.others : null;
 
       if(this.originalDVD.photos.length) {
-        this.editDVD.photos[0] = new Object();
-        this.editDVD.photos[0].public_id = this.originalDVD.photos[0].public_id;
-        this.editDVD.photos[0].url = this.originalDVD.photos[0].url;
-        this.editDVD.photos[0].id = this.originalDVD.photos[0].id;
-        this.editDVD.photos[0].photo = 1;
-      } else {
-        this.editDVD.photos[0] = new Object();
-        this.editDVD.photos[0].photo = 0;
+        this.originalDVD.photos.forEach((photo, index) => {
+          this.editDVD.photos[index] = new Object();
+          this.editDVD.photos[index].id = photo.id;
+          this.editDVD.photos[index].order = photo.order;
+          this.editDVD.photos[index].public_id = photo.public_id;
+          this.editDVD.photos[index].url = photo.url;
+          this.editDVD.photos[index].photo = 1;
+
+          this.errors.photos.push(null);
+        });
+        this.editDVD.photos.sort((a, b) => a.order - b.order);
       }
+      
+      this.editDVD.rents = this.originalDVD.rents ? this.originalDVD.rents : null;
 
       this.editDVD.format = this.originalDVD.format;
       this.editDVD.official = this.originalDVD.official ? true : false;
@@ -1375,6 +1485,7 @@ export default {
           mainRem = this.convertRem2Px(4) * 2;
         }
 
+        // 画面の大きさによって表示変更
         // 役感想
         if(this.$refs.detail_show_role_impression_headers) {
           this.$refs.detail_show_role_impression_headers.forEach(header => {
@@ -1399,6 +1510,7 @@ export default {
           });
         }
 
+
         if(!this.editDVD.locations.length) {
           this.plusLocationForm();
         }
@@ -1422,6 +1534,7 @@ export default {
             this.$refs.detail_minus_button_area_players_form.style.visibility = 'hidden';
           }
         }
+
         if(!this.editDVD.roleImpressionList.length) {
           this.plusRoleImpressionForm();
         } else if(this.editDVD.roleImpressionList.length <= this.editDVD.playerList.length) {
@@ -1437,6 +1550,12 @@ export default {
             this.$refs.detail_minus_button_area_role_impressions_form.style.visibility = 'hidden';
           }
         }
+
+        this.editDVD.roleImpressionList.forEach((roleImpression, index) => {
+          if(!roleImpression.photos.length) {
+            this.plusRoleImpressionPhotoForm(index);
+          }
+        });
         
         if(!this.editDVD.groups.length) {
           this.plusGroupForm();
@@ -1485,6 +1604,12 @@ export default {
             this.$refs.detail_minus_button_area_songs_form.style.visibility = 'hidden';
           }
         }
+
+        this.editDVD.songs.forEach((song, index) => {
+          if(!song.singers.length) {
+            this.plusSingerForm(index);
+          }
+        });
         
         if(!this.editDVD.others.length) {
           this.plusOtherForm();
@@ -1502,11 +1627,41 @@ export default {
           }
         }
 
+        if(!this.editDVD.photos.length) {
+          this.plusPhotoForm();
+        } else {
+          if(this.editDVD.photos.length < 10) {
+            this.$refs.detail_add_button_area_photos_form.style.visibility = 'visible';
+          } else {
+            this.$refs.detail_add_button_area_photos_form.style.visibility = 'hidden';
+          }
+          
+          if(this.editDVD.photos.length > 1) {
+            this.$refs.detail_minus_button_area_photos_form.style.visibility = 'visible';
+          } else {
+            this.$refs.detail_minus_button_area_photos_form.style.visibility = 'hidden';
+          }
+        }
+
         // ふりがなのinput要素のidは省略可能
         autokana = AutoKana.bind('#detail_title');
 
-        // 歌フォーム描写後
+        // 役感想フォーム、歌フォーム描写後
         this.$nextTick(() => {
+          this.editDVD.roleImpressionList.forEach((roleImpression, index) => {
+            if(roleImpression.photos.length < 10) {
+              this.$refs.detail_add_button_area_role_impression_photos_form[index].style.visibility = 'visible';
+            } else {
+              this.$refs.detail_add_button_area_role_impression_photos_form[index].style.visibility = 'hidden';
+            }
+            
+            if(roleImpression.photos.length > 1) {
+              this.$refs.detail_minus_button_area_role_impression_photos_form[index].style.visibility = 'visible';
+            } else {
+              this.$refs.detail_minus_button_area_role_impression_photos_form[index].style.visibility = 'hidden';
+            }
+          });
+
           this.editDVD.songs.forEach((song, index) => {
             const addButton = 'detail_add_button_area_singers_form_' + index;
             const minusButton = 'detail_minus_button_area_singers_form_' + index;
@@ -1523,7 +1678,7 @@ export default {
             }
           });
         });
-      });      
+      });
     },
 
     // remからpx
@@ -1577,7 +1732,7 @@ export default {
     },
 
     // 入力された役名をプルダウンメニューに追加
-    getRole: function(key) {
+    getRole(key) {
       const optionRole = this.optionRoles.find(role => role.key === key);
       const player = this.editDVD.playerList.find(role => role.key === key);
 
@@ -1590,18 +1745,18 @@ export default {
     },
 
     // 写真プレビュー
-    previewFileRoleImpression: function(index, event) {
-      this.errors.photo.roleImpression = null;
+    previewFileRoleImpression(roleImpressionIndex, roleImpresionsPhotoIndex, event) {
+      this.errors.roleImpressions[roleImpressionIndex].photos[roleImpresionsPhotoIndex] = null;
       // 何も選択されていなかったら処理中断
       if (event.target.files.length === 0) {
-        this.resetPhotoRoleImpression(index);
+        this.resetPhotoRoleImpression(roleImpressionIndex, roleImpresionsPhotoIndex);
         return false;
       }
 
       // ファイルが画像ではなかったら処理中断
       if (!event.target.files[0].type.match('image.*')) {
-        this.resetPhotoRoleImpression(index);
-        this.errors.photo.roleImpression = '写真データを選択してください';
+        this.resetPhotoRoleImpression(roleImpressionIndex, roleImpresionsPhotoIndex);
+        this.errors.roleImpressions[roleImpressionIndex].photos[roleImpresionsPhotoIndex] = '写真データを選択してください';
         return false;
       }
 
@@ -1614,45 +1769,45 @@ export default {
         // previewに値が入ると<output>につけたv-ifがtrueと判定される
         // また<output>内部の<img>のsrc属性はpreviewの値を参照しているので
         // 結果として画像が表示される
-        this.editDVD.roleImpressionList[index].photos[0].preview = e.target.result;
+        this.editDVD.roleImpressionList[roleImpressionIndex].photos[roleImpresionsPhotoIndex].preview = e.target.result;
       }
 
       // ファイルを読み込む
       // 読み込まれたファイルはデータURL形式で受け取れる（上記onload参照）
       reader.readAsDataURL(event.target.files[0]);
   
-      if(this.editDVD.roleImpressionList[index].photos[0].photo === 1) {
-        this.deletePhotoRoleImpression(index);
+      if(this.editDVD.roleImpressionList[roleImpressionIndex].photos[roleImpresionsPhotoIndex].photo === 1) {
+        this.deletePhotoRoleImpression(roleImpressionIndex, roleImpresionsPhotoIndex);
       }
-      this.editDVD.roleImpressionList[index].photos[0].photo = event.target.files[0];
+      this.editDVD.roleImpressionList[roleImpressionIndex].photos[roleImpresionsPhotoIndex].photo = event.target.files[0];
     },
 
     // 画像をクリアするメソッド
-    resetPhotoRoleImpression: function(index) {
-      this.editDVD.roleImpressionList[index].photos[0].preview = null;
-      this.editDVD.roleImpressionList[index].photos[0].photo = '';
-      document.getElementById('add_role_impressions_photo_' + index).value = null;
+    resetPhotoRoleImpression(roleImpressionIndex, roleImpresionsPhotoIndex) {
+      this.editDVD.roleImpressionList[roleImpressionIndex].photos[roleImpresionsPhotoIndex].preview = null;
+      this.editDVD.roleImpressionList[roleImpressionIndex].photos[roleImpresionsPhotoIndex].photo = '';
+      document.getElementById('detail_role_impressions_photo_' + roleImpressionIndex + '_' + roleImpresionsPhotoIndex).value = null;
     },
 
     // 写真を見せない
-    deletePhotoRoleImpression : function (index) {
-      this.editDVD.roleImpressionList[index].photos[0].photo = 0;
-      this.editDVD.roleImpressionList[index].photos[0].url = '';
+    deletePhotoRoleImpression(roleImpressionIndex, roleImpresionsPhotoIndex) {
+      this.editDVD.roleImpressionList[roleImpressionIndex].photos[roleImpresionsPhotoIndex].photo = 0;
+      this.editDVD.roleImpressionList[roleImpressionIndex].photos[roleImpresionsPhotoIndex].url = '';
     },
 
     // 写真プレビュー
-    previewFile(event) {
-      this.errors.photo.pres = null;
+    previewFile(index, event) {
+      this.errors.photos[index] = null;
       // 何も選択されていなかったら処理中断
       if (event.target.files.length === 0) {
-        this.resetPhoto();
+        this.resetPhoto(index);
         return false;
       }
 
       // ファイルが画像ではなかったら処理中断
       if (!event.target.files[0].type.match('image.*')) {
-        this.resetPhoto();
-        this.errors.photo.pres = '写真データを選択してください';
+        this.resetPhoto(index);
+        this.errors.photos[index] = '写真データを選択してください';
         return false;
       }
 
@@ -1665,33 +1820,37 @@ export default {
         // previewに値が入ると<output>につけたv-ifがtrueと判定される
         // また<output>内部の<img>のsrc属性はpreviewの値を参照しているので
         // 結果として画像が表示される
-        this.editDVD.photos[0].preview = e.target.result;
+        this.editDVD.photos[index].preview = e.target.result;
       }
 
       // ファイルを読み込む
       // 読み込まれたファイルはデータURL形式で受け取れる（上記onload参照）
       reader.readAsDataURL(event.target.files[0]);
-      if(this.editDVD.photos[0].photo === 1) {
-        this.deletePhoto();
+      if(this.editDVD.photos[index].photo === 1) {
+        this.deletePhoto(index);
       }
-      this.editDVD.photos[0].photo = event.target.files[0];
+      this.editDVD.photos[index].photo = event.target.files[0];
     },
 
     // 写真を見せない
-    deletePhoto(){
-      this.editDVD.photos[0].photo = 0;
-      this.editDVD.photos[0].url = '';
+    deletePhoto(index){
+      this.editDVD.photos[index].photo = 0;
+      this.editDVD.photos[index].url = '';
     },
     // 画像をクリアするメソッド
-    resetPhoto() {
-      this.editDVD.photos[0].preview = null;
-      this.editDVD.photos[0].photo = 0;
-      document.getElementById('add_photo').value = null;
+    resetPhoto(index) {
+      this.editDVD.photos[index].preview = null;
+      this.editDVD.photos[index].photo = 0;
+      document.getElementById('detail_photo_' + index).value = null;
+    },
+
+    // 貸出記録抹消
+    detailRents(index) {
+      this.editDVD.rents.splice(index, 1);
     },
 
     // 編集確認
     confirmEditData() {
-      let flag = 0; // 0なら変更なし、1は変更あり（0なら通す）
       let patternNumber = /^([0-9]\d*|0)$/; // 0~9の数字かどうか
       let patternAlf = /^([A-Z]\d*)$/; // A~Zのアルファベットかどうか*いる
       let patternKanaHira = /^[ぁ-んァ-ンヴーｧ-ﾝﾞﾟ\-]+$/u;
@@ -1701,141 +1860,153 @@ export default {
       if(!this.editDVD.title || !this.editDVD.kana) {
         return false;
       }      
-
+      
       if(this.originalEditDVD.title !== this.editDVD.title || this.originalEditDVD.duration_from !== this.editDVD.duration_from || this.originalEditDVD.duration_to !== this.editDVD.duration_to
          || this.originalEditDVD.story !== this.editDVD.story || this.originalEditDVD.impression !== this.editDVD.impression || this.originalEditDVD.author !== this.editDVD.author || this.originalEditDVD.lyricist !== this.editDVD.lyricist || this.originalEditDVD.choreo !== this.editDVD.choreo || this.originalEditDVD.director !== this.editDVD.director
          || this.originalEditDVD.format !== this.editDVD.format || this.originalEditDVD.official !== this.originalEditDVD.official
          || this.originalEditDVD.special !== this.originalEditDVD.special || this.originalEditDVD.url_DVD !== this.editDVD.url_DVD || this.originalEditDVD.url_movie !== this.editDVD.url_movie || this.originalEditDVD.url_youtube !== this.editDVD.url_youtube || this.originalEditDVD.category !== this.editDVD.category
       ) {
-        flag = 1;
+        this.flag = 1;
       }
 
       this.editDVD.locations = this.editDVD.locations.filter(location => location.prefecture ? location : null);
       for(let i = 0; i < this.editDVD.locations.length; i++) {
         this.editDVD.locations[i].order = i + 1;
       }
-      if(!flag && this.originalEditDVD.locations.length === this.editDVD.locations.length) {
+      if(!this.flag && this.originalEditDVD.locations.length === this.editDVD.locations.length) {
         this.originalEditDVD.locations.forEach((location, index)  => {
           if(location.id !== this.editDVD.locations[index].id || location.order !== this.editDVD.locations[index].order || location.prefecture !== this.editDVD.locations[index].prefecture || location.theater !== this.editDVD.locations[index].theater) {
-            flag = 1;
+            this.flag = 1;
           }
         });
       } else {
-        flag = 1;
+        this.flag = 1;
       }
       if(!this.editDVD.locations.length) {
         this.plusLocationForm();
       }
-
+     
       this.editDVD.costumers = this.editDVD.costumers.filter(costumer => costumer.name ? costumer : null);
       for(let i = 0; i < this.editDVD.costumers.length; i++) {
         this.editDVD.costumers[i].order = i + 1;
       }
-      if(!flag && this.originalEditDVD.costumers.length === this.editDVD.costumers.length) {
+      if(!this.flag && this.originalEditDVD.costumers.length === this.editDVD.costumers.length) {
         this.originalEditDVD.costumers.forEach((costumer, index)  => {
           if(costumer.id !== this.editDVD.costumers[index].id || costumer.order !== this.editDVD.costumers[index].order || costumer.name !== this.editDVD.costumers[index].name ) {
-            flag = 1;
+            this.flag = 1;
           }
         });
       } else {
-        flag = 1;
+        this.flag = 1;
       }
       if(!this.editDVD.costumers.length) {
         this.plusCostumerForm();
       }
-      
+            
       this.editDVD.groups = this.editDVD.groups.filter(group => group.name ? group : null);
       this.optionGroups = this.optionGroups.filter(group => group.name ? group : null);
       for(let i = 0; i < this.editDVD.groups.length; i++) {
         this.editDVD.groups[i].order = i + 1;
       }
-      if(!flag && this.originalEditDVD.groups.length === this.editDVD.groups.length) {
+      if(!this.flag && this.originalEditDVD.groups.length === this.editDVD.groups.length) {
         this.originalEditDVD.groups.forEach((group, index)  => {
           if(group.id !== this.editDVD.groups[index].id || group.order !== this.editDVD.groups[index].order || group.name !== this.editDVD.groups[index].name ) {
-            flag = 1;
+            this.flag = 1;
           }
         });
       } else {
-        flag = 1;
+        this.flag = 1;
       }
       if(!this.editDVD.groups.length) {
         this.plusGroupForm();
       }
-
+      
       this.editDVD.playerList = this.editDVD.playerList.filter(player => player.player ? player : null);
       this.optionRoles = this.optionRoles.filter(role => role.role ? role : null);
       for(let i = 0; i < this.editDVD.playerList.length; i++) {
         this.editDVD.playerList[i].order = i + 1;
       }
-      if(!flag && this.originalEditDVD.playerList.length === this.editDVD.playerList.length) {
+      if(!this.flag && this.originalEditDVD.playerList.length === this.editDVD.playerList.length) {
         this.originalEditDVD.playerList.forEach((player,index) => {
           if(player.group_key !== this.editDVD.playerList[index].group_key || player.group_id !== this.editDVD.playerList[index].group_id || player.id !== this.editDVD.playerList[index].id
             || player.order !== this.editDVD.playerList[index].order || player.member !== this.editDVD.playerList[index].member || player.player !== this.editDVD.playerList[index].player || player.role !== this.editDVD.playerList[index].role
           ){
-            flag = 1;
+            this.flag = 1;
           }
         });
       } else {
-        flag = 1;
+        this.flag = 1;
       }
       if(!this.editDVD.playerList.length) {
         this.plusPlayerForm();
       }
-
-      this.editDVD.roleImpressionList = this.editDVD.roleImpressionList.filter(roleImpression => roleImpression.impression ? roleImpression : null);
+      
+      let count = 0;
       for(let i = 0; i < this.editDVD.roleImpressionList.length; i++) {
-        this.editDVD.roleImpressionList[i].order = i + 1;
-      }
-      if(!flag && this.originalEditDVD.roleImpressionList.length === this.editDVD.roleImpressionList.length) {
-        this.originalEditDVD.roleImpressionList.forEach((role,index) => {
-          if(role.impression !== this.editDVD.roleImpressionList[index].impression || role.role_key !== this.editDVD.roleImpressionList[index].role_key || role.role_id !== this.editDVD.roleImpressionList[index].role_id){
-            flag = 1;
-          } else {
-            role.photos.forEach((photo, index2) => {
-              if(photo.photo !== this.editDVD.roleImpressionList[index].photos[index2].photo) {
-                flag = 1;
+        if(this.editDVD.roleImpressionList[i].impression) {
+          this.editDVD.roleImpressionList[i].order = count + 1;
+          this.editDVD.roleImpressionList[i].photos = this.editDVD.roleImpressionList[i].photos.filter(photo => photo.photo ? photo : null);
+          if(this.editDVD.roleImpressionList[i].photos.length) {
+            let count2 = 0;
+            for(let k = 0; k < this.editDVD.roleImpressionList[i].photos.length; k++) {
+              if(this.editDVD.roleImpressionList[i].photos[k].photo) {
+                this.editDVD.roleImpressionList[i].photos[k].order = count2 + 1;
+                count2++;
               }
-            });
+            }
+          }
+        } else {
+          this.editDVD.roleImpressionList[i].photos = this.editDVD.roleImpressionList[i].photos.filter(photo => photo.photo ? photo : null);
+          let count2 = 0;
+          for(let k = 0; k < this.editDVD.roleImpressionList[i].photos.length; k++) {
+            if(this.editDVD.roleImpressionList[i].photos[k].photo) {
+              this.editDVD.roleImpressionList[i].photos[k].order = count2 + 1;
+              count2++;
+            }
+          }
+        }
+      }
+      this.editDVD.roleImpressionList = this.editDVD.roleImpressionList.filter(roleImpression => roleImpression.order ? roleImpression : null);
+      if(!this.flag && this.originalEditDVD.roleImpressionList.length === this.editDVD.roleImpressionList.length) {
+        this.originalEditDVD.roleImpressionList.forEach((role,index) => {
+          if(!this.flag && role.impression !== this.editDVD.roleImpressionList[index].impression || role.role_key !== this.editDVD.roleImpressionList[index].role_key || role.role_id !== this.editDVD.roleImpressionList[index].role_id){
+            this.flag = 1;
+          } else {
+            if(!this.flag && role.photos.length === this.editDVD.roleImpressionList[index].photos.length) {
+              role.photos.forEach((photo, index2) => {
+                if(!this.flag && photo.id !== this.editDVD.roleImpressionList[index].photos[index2].id || photo.order !== this.editDVD.roleImpressionList[index].photos[index2].order || photo.photo !== this.editDVD.roleImpressionList[index].photos[index2].photo) {
+                  this.flag = 1;
+                }
+              });
+            } else {
+              this.flag = 1;
+            }            
           }
         });
       } else {
-        flag = 1;
+        this.flag = 1;
       }
       if(!this.editDVD.roleImpressionList.length) {
         this.plusRoleImpressionForm();
       }
-
-      this.editDVD.photos = this.editDVD.photos.filter(photo => photo.photo || photo.photo === 0 ? photo : null);
-      if(!this.editDVD.photos.length) {
-        this.editDVD.photos[0].photo = 0;
-      }
-      if(!flag && this.originalEditDVD.photos.length === this.editDVD.photos.length) {
-        this.originalEditDVD.photos.forEach((photo, index) => {
-          if(photo.photo !== this.editDVD.photos[index].photo) {
-            flag = 1;
-          }
-        });
-      } else {
-        flag = 1;
-      }
-
+      
       this.editDVD.histories = this.editDVD.histories.filter(history => history.title || history.history ? history : null);
       for(let i = 0; i < this.editDVD.histories.length; i++) {
         this.editDVD.histories[i].order = i + 1;
       }
-      if(!flag && this.originalEditDVD.histories.length === this.editDVD.histories.length) {
-        this.originalEditDVD.histories.forEach((other, index) => {
+      if(!this.flag && this.originalEditDVD.histories.length === this.editDVD.histories.length) {
+        this.originalEditDVD.histories.forEach((history, index) => {
           if(history.id !== this.editDVD.histories[index].id || history.order !== this.editDVD.histories[index].order || history.title !== this.editDVD.histories[index].title || history.history !== this.editDVD.histories[index].history ) {
-            flag = 1;
+            this.flag = 1;
           }
         });
       } else {
-        flag = 1;
+        this.flag = 1;
       }
       if(!this.editDVD.histories.length) {
         this.plusHistoryForm();
       }
-
+      
       this.editDVD.songs = this.editDVD.songs.filter(song => song.title ? song : null);
       for(let i = 0; i < this.editDVD.songs.length; i++) {
         this.editDVD.songs[i].order = i + 1;
@@ -1844,36 +2015,36 @@ export default {
           this.editDVD.songs[i].singers[k].order = k + 1;
         }
       }
-      if(!flag && this.originalEditDVD.songs.length === this.editDVD.songs.length) {
+      if(!this.flag && this.originalEditDVD.songs.length === this.editDVD.songs.length) {
         this.originalEditDVD.songs.forEach((song, index) => {
           if(song.id !== this.editDVD.songs[index].id || song.order !== this.editDVD.songs[index].order || song.title !== this.editDVD.songs[index].title || song.impression !== this.editDVD.songs[index].impression) {
-            flag = 1;
+            this.flag = 1;
           } else {
             if(song.singers.length === this.editDVD.songs[index].singers.length) {
               song.singers.forEach((singer, index2) => {
                 if(singer.id !== this.editDVD.songs[index].singers[index2].id || singer.order !== this.editDVD.songs[index].singers[index2].order || singer.type !== this.editDVD.songs[index].singers[index2].type) {
-                  flag = 1;
+                  this.flag = 1;
                 } else if(singer.type === 'role') {
                   if(singer.role_key !== this.editDVD.songs[index].singers[index2].role_key || singer.role_id !== this.editDVD.songs[index].singers[index2].role_id) {
-                    flag = 1;
+                    this.flag = 1;
                   }
                 } else if(singer.type === 'group') {
                   if(singer.group_key !== this.editDVD.songs[index].singers[index2].group_key || singer.group_id !== this.editDVD.songs[index].singers[index2].group_id) {
-                    flag = 1;
+                    this.flag = 1;
                   }
                 } else {
                   if(singer.name !== this.editDVD.songs[index].singers[index2].name) {
-                    flag = 1;
+                    this.flag = 1;
                   }
                 }
               });
             } else {
-              flag = 1;
+              this.flag = 1;
             }            
           }
         });
       } else {
-        flag = 1;
+        this.flag = 1;
       }
       if(!this.editDVD.songs.length) {
         this.plusSongForm();
@@ -1883,24 +2054,41 @@ export default {
           this.plusSingerForm(index);
         }
       });
-
+      
       this.editDVD.others = this.editDVD.others.filter(other => other.title || other.impression ? other : null);
       for(let i = 0; i < this.editDVD.others.length; i++) {
         this.editDVD.others[i].order = i + 1;
       }
-      if(!flag && this.originalEditDVD.others.length === this.editDVD.others.length) {
+      if(!this.flag && this.originalEditDVD.others.length === this.editDVD.others.length) {
         this.originalEditDVD.others.forEach((other, index) => {
           if(other.id !== this.editDVD.others[index].id || other.order !== this.editDVD.others[index].order || other.title !== this.editDVD.others[index].title || other.impression !== this.editDVD.others[index].impression) {
-            flag = 1;
+            this.flag = 1;
           }
         });
       } else {
-        flag = 1;
+        this.flag = 1;
       }
       if(!this.editDVD.others.length) {
         this.plusOtherForm();
       }
 
+      this.editDVD.photos = this.editDVD.photos.filter(photo => photo.photo ? photo : null);
+      for(let i = 0; i < this.editDVD.photos.length; i++) {
+        this.editDVD.photos[i].order = i + 1;
+      }
+      if(!this.flag && this.originalEditDVD.photos.length === this.editDVD.photos.length) {
+        this.originalEditDVD.photos.forEach((photo, index) => {
+          if(photo.id !== this.editDVD.photos[index].id || photo.order !== this.editDVD.photos[index].order || photo.photo !== this.editDVD.photos[index].photo ) {
+            this.flag = 1;
+          }
+        });
+      } else {
+        this.flag = 1;
+      }
+      if(!this.editDVD.photos.length) {
+        this.plusPhotoForm();
+      }
+      
       // タイトル（ふりがな）正規表現
       kanas = [...this.editDVD.kana];
       kanas.forEach(a => {
@@ -1923,13 +2111,19 @@ export default {
           }
         }
       });
-
-      if(!flag && this.originalEditDVD.kana !== kana) {
-        flag = 1;
+      
+      this.editDVD.rents = this.editDVD.rents.filter(rent => rent.name ? rent : null);
+      if(this.originalEditDVD.rents.length === this.editDVD.rents.length) {
+        this.originalEditDVD.rents.forEach((rent, index) => {
+          if(rent.id !== this.editDVD.rents[index].id || rent.name !== this.editDVD.rents[index].name || rent.start_date !== this.editDVD.rents[index].start_date || rent.return_date !== this.editDVD.rents[index].return_date ) {
+            this.flagRent = 1;
+          }
+        });
+      } else {
+        this.flagRent = 1;
       }
 
-
-      if(!flag) {
+      if(!this.flag && !this.flagRent) {
         this.showContent_message = true;
         this.dialog_message = '元のデータと同じです。編集してください。';
       } else {
@@ -1942,6 +2136,8 @@ export default {
     closeModal_message() {
       this.showContent_message = false;
       this.dialog_message = '';
+      this.flag = 0;
+      this.flagRent = 0;
     },
     // confirmのモーダル非表示_OKの場合
     async closeModal_confirm_OK() {
@@ -1956,265 +2152,310 @@ export default {
     // confirmのモーダル非表示_Cancelの場合
     closeModal_confirm_Cancel() {
       this.showContent_confirm = false;
-      this.dialog_confirm = ''
+      this.dialog_confirm = '';
+      this.flag = 0;
+      this.flagRent = 0;
     },
     // データ送信
-    async editData() {
-      let patternNumber = /^([0-9]\d*|0)$/; // 0~9の数字かどうか
-      let patternAlf = /^([A-Z]\d*)$/; // A~Zのアルファベットかどうか*いる
-      let patternKanaHira = /^[ぁ-んァ-ンヴーｧ-ﾝﾞﾟ\-]+$/u;
-      const formData = new FormData();
-      let kanas;
-      let kana = '';
-      let count = 0;
-      
+    async editData() {      
       if(!this.editDVD.title || !this.editDVD.kana) {
         return false;
       }
 
-      // タイトル（ふりがな）正規表現
-      kanas = [...this.editDVD.kana];
-      kanas.forEach(a => {
-        const number = this.Zenkaku2hankaku_number(a);
-        if(patternNumber.test(number)){
-          // 数字だった
-          kana = kana + number;
-        }else{
-          // 数字じゃなかった=文字だった
-          const alf = this.Zenkaku2hankaku_alf(number);
-          if(patternAlf.test(alf.toUpperCase())){
-            // アルファベットだった
-            kana = kana + alf.toUpperCase();
-          }else if(patternKanaHira.test(alf)){
-            // アルファベットじゃなかった=ひらがなかカタカナだった
-            const str = this.hunkaku2Zenkaku_str(alf);
-            kana = kana + this.Hira2Kana(str);
-          }else if(alf == "-" || alf == " "){
-            kana = kana + alf;
+      if(this.flag) {
+        let patternNumber = /^([0-9]\d*|0)$/; // 0~9の数字かどうか
+        let patternAlf = /^([A-Z]\d*)$/; // A~Zのアルファベットかどうか*いる
+        let patternKanaHira = /^[ぁ-んァ-ンヴーｧ-ﾝﾞﾟ\-]+$/u;
+        const formData = new FormData();
+        let kanas;
+        let kana = '';
+        let count = 0;
+
+        // タイトル（ふりがな）正規表現
+        kanas = [...this.editDVD.kana];
+        kanas.forEach(a => {
+          const number = this.Zenkaku2hankaku_number(a);
+          if(patternNumber.test(number)){
+            // 数字だった
+            kana = kana + number;
+          }else{
+            // 数字じゃなかった=文字だった
+            const alf = this.Zenkaku2hankaku_alf(number);
+            if(patternAlf.test(alf.toUpperCase())){
+              // アルファベットだった
+              kana = kana + alf.toUpperCase();
+            }else if(patternKanaHira.test(alf)){
+              // アルファベットじゃなかった=ひらがなかカタカナだった
+              const str = this.hunkaku2Zenkaku_str(alf);
+              kana = kana + this.Hira2Kana(str);
+            }else if(alf == "-" || alf == " "){
+              kana = kana + alf;
+            }
           }
-        }
-      });
-      
-      formData.append('title', this.editDVD.title);
-      formData.append('kana', kana);
-      formData.append('duration_from', this.editDVD.duration_from);
-      formData.append('duration_to', this.editDVD.duration_to);
-      
-      this.editDVD.locations.forEach(location => {
-        if(location.prefecture){
-          formData.append('location[' + count + '][id]', location.id ? location.id : '');
-          formData.append('location[' + count + '][order]', location.order);
-          formData.append('location[' + count + '][prefecture]', location.prefecture);
-          formData.append('location[' + count + '][theater]', location.theater);
-          count++;
-        }
-      });
-      count = 0;
-      
-      formData.append('impression', this.editDVD.impression);
-      formData.append('story', this.editDVD.story);
-      formData.append('author', this.editDVD.author ? this.editDVD.author.replace(/\s+/g,'') : '');
-      formData.append('costumer', this.editDVD.costumer ? this.editDVD.costumer.replace(/\s+/g,'') : '');      
-      
-      this.editDVD.costumers.forEach(costumer => {
-        if(costumer.name){
-          formData.append('costumer[' + count + '][id]', costumer.id ? costumer.id : '');
-          formData.append('costumer[' + count + '][order]', costumer.order);
-          formData.append('costumer[' + count + '][name]', costumer.name);
-          count++;
-        }
-      });
-      count = 0;
-      
-      formData.append('lyricist', this.editDVD.lyricist ? this.editDVD.lyricist.replace(/\s+/g,'') : '');
-      formData.append('choreo', this.editDVD.choreo ? this.editDVD.choreo.replace(/\s+/g,'') : '');
-      formData.append('director', this.editDVD.director ? this.editDVD.director.replace(/\s+/g,'') : '');
-      
-      this.editDVD.groups.forEach(group => {
-        if(group.name){
-          if(group.name.replace(/\s+/g,'')) {
-            formData.append('group[' + count + '][id]', group.id ? group.id : '');
-            formData.append('group[' + count + '][key]', group.key);
-            formData.append('group[' + count + '][order]', group.order);
-            formData.append('group[' + count + '][name]', group.name);
+        });
+        
+        formData.append('title', this.editDVD.title);
+        formData.append('kana', kana);
+        formData.append('duration_from', this.editDVD.duration_from);
+        formData.append('duration_to', this.editDVD.duration_to);
+        
+        this.editDVD.locations.forEach(location => {
+          if(location.prefecture){
+            formData.append('location[' + count + '][id]', location.id ? location.id : '');
+            formData.append('location[' + count + '][order]', location.order);
+            formData.append('location[' + count + '][prefecture]', location.prefecture);
+            formData.append('location[' + count + '][theater]', location.theater);
             count++;
-          }            
-        }
-      });
-      count = 0;
-      
-      this.editDVD.playerList.forEach(player => {
-        if(player.player){
-          if(player.player.replace(/\s+/g,'')) {
-            const role = this.optionRoles.find(role => role.role == player.role);
-            let role_impression;
-            if(role) {
-              role_impression = this.editDVD.roleImpressionList.find(roleImpression => roleImpression.role_key == role.key);
-            }
-            formData.append('role[' + count + '][id]', player.id ? player.id : '');
-            formData.append('role[' + count + '][order]', player.order);
-            formData.append('role[' + count + '][group_key]', player.group_key ? player.group_key : '');
-            formData.append('role[' + count + '][role]', player.role ? player.role : '');
-            formData.append('role[' + count + '][key]', player.key);
-            formData.append('role[' + count + '][player]', player.player.replace(/\s+/g,''));
-            formData.append('role[' + count + '][member]', player.member ? 1 : 0);
-            formData.append('role[' + count + '][impression]', role_impression ? role_impression.impression ? role_impression.impression : '' : '');
-            if(role_impression) {
-              let count2 = 0;
-              role_impression.photos.forEach(photo => {
-                if(photo) {
-                  formData.append('role[' + count + '][photo][' + count2 + '][id]', photo.id ? photo.id : '');
-                  formData.append('role[' + count + '][photo][' + count2 + '][public_id]', photo.public_id ? photo.public_id : '');
-                  formData.append('role[' + count + '][photo][' + count2 + '][url]', photo.url ? photo.url : '');
-                  formData.append('role[' + count + '][photo][' + count2 + '][photo]', photo.photo ? photo.photo : '');
-                  count2++  
-                }        
-              });              
-            } else {
-              formData.append('role[' + count + '][photo][' + 0 + '][id]', '');
-              formData.append('role[' + count + '][photo][' + 0 + '][public_id]', '');
-              formData.append('role[' + count + '][photo][' + 0 + '][url]', '');
-              formData.append('role[' + count + '][photo][' + 0 + '][photo]', '');
-            }
+          }
+        });
+        count = 0;
+        
+        formData.append('impression', this.editDVD.impression);
+        formData.append('story', this.editDVD.story);
+        formData.append('author', this.editDVD.author ? this.editDVD.author.replace(/\s+/g,'') : '');
+        formData.append('costumer', this.editDVD.costumer ? this.editDVD.costumer.replace(/\s+/g,'') : '');      
+        
+        this.editDVD.costumers.forEach(costumer => {
+          if(costumer.name){
+            formData.append('costumer[' + count + '][id]', costumer.id ? costumer.id : '');
+            formData.append('costumer[' + count + '][order]', costumer.order);
+            formData.append('costumer[' + count + '][name]', costumer.name);
             count++;
-          }            
-        }
-      });
-      count = 0;
-      
-      this.editDVD.histories.forEach(history => {
-        if(history.history) {
-          if(history.history.replace(/\s+/g, '')) {
-            let history_flag = 0;
-            if(history.title) {
-              if(history.title.replace(/\s+/g, '')) {
-                history_flag = 1;
+          }
+        });
+        count = 0;
+        
+        formData.append('lyricist', this.editDVD.lyricist ? this.editDVD.lyricist.replace(/\s+/g,'') : '');
+        formData.append('choreo', this.editDVD.choreo ? this.editDVD.choreo.replace(/\s+/g,'') : '');
+        formData.append('director', this.editDVD.director ? this.editDVD.director.replace(/\s+/g,'') : '');
+        
+        this.editDVD.groups.forEach(group => {
+          if(group.name){
+            if(group.name.replace(/\s+/g,'')) {
+              formData.append('group[' + count + '][id]', group.id ? group.id : '');
+              formData.append('group[' + count + '][key]', group.key);
+              formData.append('group[' + count + '][order]', group.order);
+              formData.append('group[' + count + '][name]', group.name);
+              count++;
+            }            
+          }
+        });
+        count = 0;
+        
+        this.editDVD.playerList.forEach(player => {
+          if(player.player){
+            if(player.player.replace(/\s+/g,'')) {
+              const role = this.optionRoles.find(role => role.role == player.role);
+              let role_impression;
+              if(role) {
+                role_impression = this.editDVD.roleImpressionList.find(roleImpression => roleImpression.role_key == role.key);
+              }
+              formData.append('role[' + count + '][id]', player.id ? player.id : '');
+              formData.append('role[' + count + '][order]', player.order);
+              formData.append('role[' + count + '][group_key]', player.group_key ? player.group_key : '');
+              formData.append('role[' + count + '][role]', player.role ? player.role : '');
+              formData.append('role[' + count + '][key]', player.key);
+              formData.append('role[' + count + '][player]', player.player.replace(/\s+/g,''));
+              formData.append('role[' + count + '][member]', player.member ? 1 : 0);
+              formData.append('role[' + count + '][impression]', role_impression ? role_impression.impression ? role_impression.impression : '' : '');
+              if(role_impression) {
+                let count2 = 0;
+                role_impression.photos.forEach(photo => {
+                  if(photo) {
+                    formData.append('role[' + count + '][photo][' + count2 + '][id]', photo.id ? photo.id : '');
+                    formData.append('role[' + count + '][photo][' + count2 + '][order]', count2 + 1);
+                    formData.append('role[' + count + '][photo][' + count2 + '][public_id]', photo.public_id ? photo.public_id : '');
+                    formData.append('role[' + count + '][photo][' + count2 + '][url]', photo.url ? photo.url : '');
+                    formData.append('role[' + count + '][photo][' + count2 + '][photo]', photo.photo ? photo.photo : '');
+                    count2++  
+                  }        
+                });              
+              }
+              count++;
+            }            
+          }
+        });
+        count = 0;
+        
+        this.editDVD.histories.forEach(history => {
+          if(history.history) {
+            if(history.history.replace(/\s+/g, '')) {
+              let history_flag = 0;
+              if(history.title) {
+                if(history.title.replace(/\s+/g, '')) {
+                  history_flag = 1;
+                } else if(this.editDVD.histories.length === 1) {
+                  history_flag = 1;
+                }
               } else if(this.editDVD.histories.length === 1) {
                 history_flag = 1;
               }
-            } else if(this.editDVD.histories.length === 1) {
-              history_flag = 1;
-            }
 
-            if(history_flag) {
-              formData.append('history[' + count + '][id]', history.id ? history.id : '');
-              formData.append('history[' + count + '][order]', history.order);
-              formData.append('history[' + count + '][title]', history.title ? history.title.replace(/\s+/g, '') : '');
-              formData.append('history[' + count + '][history]', history.history);
-              count++;
+              if(history_flag) {
+                formData.append('history[' + count + '][id]', history.id ? history.id : '');
+                formData.append('history[' + count + '][order]', history.order);
+                formData.append('history[' + count + '][title]', history.title ? history.title.replace(/\s+/g, '') : '');
+                formData.append('history[' + count + '][history]', history.history);
+                count++;
+              }
             }
           }
-        }
-      });
-      count = 0
-      
-      this.editDVD.songs.forEach(song => {
-        if(song.title){
-          if(song.title.replace(/\s+/g,'')) {
-            formData.append('song[' + count + '][id]', song.id ? song.id : '');
-            formData.append('song[' + count + '][order]', song.order);
-            formData.append('song[' + count + '][title]', song.title);
-            formData.append('song[' + count + '][impression]', song.impression ? song.impression.replace(/\r+/g, '') : '');
+        });
+        count = 0
+        
+        this.editDVD.songs.forEach(song => {
+          if(song.title){
+            if(song.title.replace(/\s+/g,'')) {
+              formData.append('song[' + count + '][id]', song.id ? song.id : '');
+              formData.append('song[' + count + '][order]', song.order);
+              formData.append('song[' + count + '][title]', song.title);
+              formData.append('song[' + count + '][impression]', song.impression ? song.impression.replace(/\r+/g, '') : '');
 
-            if(song.singers.length) {
-              let count2 = 0;
-              for(let k = 0; k < song.singers.length; k++) {
-                const singer = song.singers[k];
-                if(singer.role_key || singer.group_key || singer.name) {
-                  let singerFlag = 0;
-                  if(singer.role_key || singer.group_key) {
-                    singerFlag = 1;
-                  } else if(singer.name.replace(/\s+/g, '')) {
-                    singerFlag = 1;
-                  }
+              if(song.singers.length) {
+                let count2 = 0;
+                for(let k = 0; k < song.singers.length; k++) {
+                  const singer = song.singers[k];
+                  if(singer.role_key || singer.group_key || singer.name) {
+                    let singerFlag = 0;
+                    if(singer.role_key || singer.group_key) {
+                      singerFlag = 1;
+                    } else if(singer.name.replace(/\s+/g, '')) {
+                      singerFlag = 1;
+                    }
 
-                  if(singerFlag) {
-                    formData.append('song[' + count + '][singer][' + count2 + '][id]', singer.id ? singer.id : '');
-                    formData.append('song[' + count + '][singer][' + count2 + '][order]', count2 + 1);
-                    formData.append('song[' + count + '][singer][' + count2 + '][type]', singer.type);
-                    if(singer.type === 'role') {
-                      formData.append('song[' + count + '][singer][' + count2 + '][name]', singer.role_key);
-                    } else if(singer.type === 'group') {
-                      formData.append('song[' + count + '][singer][' + count2 + '][name]', singer.group_key);
-                    } else if(singer.type === 'name') {
-                      formData.append('song[' + count + '][singer][' + count2 + '][name]', singer.name.replace(/\s+/g, ''));
-                    }                      
-                    count2++;
+                    if(singerFlag) {
+                      formData.append('song[' + count + '][singer][' + count2 + '][id]', singer.id ? singer.id : '');
+                      formData.append('song[' + count + '][singer][' + count2 + '][order]', count2 + 1);
+                      formData.append('song[' + count + '][singer][' + count2 + '][type]', singer.type);
+                      if(singer.type === 'role') {
+                        formData.append('song[' + count + '][singer][' + count2 + '][name]', singer.role_key);
+                      } else if(singer.type === 'group') {
+                        formData.append('song[' + count + '][singer][' + count2 + '][name]', singer.group_key);
+                      } else if(singer.type === 'name') {
+                        formData.append('song[' + count + '][singer][' + count2 + '][name]', singer.name.replace(/\s+/g, ''));
+                      }                      
+                      count2++;
+                    }
                   }
                 }
               }
+              count++;
             }
+          }
+        });
+        count = 0;
+        
+        this.editDVD.others.forEach(other => {
+          let other_title_flag = 0;
+          let other_impression_flag = 0;
+
+          if(other.title) {
+            if(other.title.replace(/\s+/g,'')) {
+              other_title_flag = 1;
+            }
+          }
+
+          if(other.impression){
+            if(other.impression.replace(/\s+/g,'')) {
+              other_impression_flag = 1;          
+            }
+          }
+
+          if(other_title_flag || other_impression_flag) {
+            formData.append('other[' + count + '][id]', other.id ? other.id : '');
+            formData.append('other[' + count + '][order]', count + 1);
+            formData.append('other[' + count + '][title]', other_title_flag ? other.title : '');
+            formData.append('other[' + count + '][impression]', other_impression_flag ? other.impression : '');
             count++;
           }
-        }
-      });
-      count = 0
-      
-      this.editDVD.others.forEach(other => {
-        let other_title_flag = 0;
-        let other_impression_flag = 0;
-
-        if(other.title) {
-          if(other.title.replace(/\s+/g,'')) {
-            other_title_flag = 1;
-          }
-        }
-
-        if(other.impression){
-          if(other.impression.replace(/\s+/g,'')) {
-            other_impression_flag = 1;          
-          }
-        }
-
-        if(other_title_flag || other_impression_flag) {
-          formData.append('other[' + count + '][id]', other.id ? other.id : '');
-          formData.append('other[' + count + '][order]', other.order);
-          formData.append('other[' + count + '][title]', other_title_flag ? other.title : '');
-          formData.append('other[' + count + '][impression]', other_impression_flag ? other.impression : '');
-          count++;
-        }
-      });
-      count = 0
-      
-      formData.append('photo[' + count + '][id]', this.editDVD.photos[0].id ? this.editDVD.photos[0].id : '');
-      formData.append('photo[' + count + '][public_id]', this.editDVD.photos[0].public_id ? this.editDVD.photos[0].public_id : '');
-      formData.append('photo[' + count + '][url]', this.editDVD.photos[0].url ? this.editDVD.photos[0].url : '');
-      formData.append('photo[' + count + '][photo]', this.editDVD.photos[0].photo ? this.editDVD.photos[0].photo : '');
-
-      formData.append('format', this.editDVD.format);
-      formData.append('official', this.editDVD.official ? 1 : 0);
-      formData.append('special', this.editDVD.special ? 1 : 0);
-      formData.append('url_DVD', this.editDVD.url_DVD);
-      formData.append('url_movie', this.editDVD.url_movie);
-      formData.append('url_youtube', this.editDVD.url_youtube);
-      formData.append('category', this.editDVD.category);
-
-      const response = await axios.post('/api/DVD/' + this.DVD.id, formData);
-
-      if (response.status === 422) {
-        this.errors.error = response.data.errors;
-        // メッセージ登録
-        this.$store.commit('message/setContent', {
-          content: '登録できませんでした',
-          timeout: 6000
         });
-        return false;
+        count = 0
+        
+        this.editDVD.photos.forEach(photo => {
+          if(photo.photo) {
+            formData.append('photo[' + count + '][id]', photo.id ? photo.id : '');
+            formData.append('photo[' + count + '][order]', photo.photo ? count + 1 : '');
+            formData.append('photo[' + count + '][public_id]', photo.public_id ? photo.public_id : '');
+            formData.append('photo[' + count + '][url]', photo.url ? photo.url : '');
+            formData.append('photo[' + count + '][photo]', photo.photo);
+            count++;
+          }
+        });
+        count = 0;
+
+        formData.append('format', this.editDVD.format);
+        formData.append('official', this.editDVD.official ? 1 : 0);
+        formData.append('special', this.editDVD.special ? 1 : 0);
+        formData.append('url_DVD', this.editDVD.url_DVD);
+        formData.append('url_movie', this.editDVD.url_movie);
+        formData.append('url_youtube', this.editDVD.url_youtube);
+        formData.append('category', this.editDVD.category);
+
+        const response = await axios.post('/api/DVD/' + this.DVD.id, formData);
+
+        if (response.status === 422) {
+          this.errors.error = response.data.errors;
+          // メッセージ登録
+          this.$store.commit('message/setContent', {
+            content: '登録できませんでした',
+            timeout: 6000
+          });
+          return false;
+        }
+
+        if (response.status !== 200) {
+          this.$store.commit('error/setCode', response.status);
+          // メッセージ登録
+          this.$store.commit('message/setContent', {
+            content: '登録できませんでした',
+            timeout: 6000
+          });
+          return false;
+        }
       }
 
-      if (response.status !== 200) {
-        this.$store.commit('error/setCode', response.status);
-        // メッセージ登録
-        this.$store.commit('message/setContent', {
-          content: '登録できませんでした',
-          timeout: 6000
+      if(this.flagRent) {
+        const formData = new FormData();
+        let count = 0;
+
+        formData.append('DVD_id', this.DVD.id);
+        this.editDVD.rents.forEach(rent => {
+          if(rent.name) {
+            formData.append('rent[' + count + '][id]', rent.id ? rent.id : '');
+            formData.append('rent[' + count + '][name]', rent.name);
+            formData.append('rent[' + count + '][start_date]', rent.start_date ? rent.start_date : '');
+            formData.append('rent[' + count + '][return_date]', rent.return_date ? rent.return_date : '');
+            count++;
+          }
         });
-        return false;
+
+        const response = await axios.post('/api/rentEdit', formData);
+
+        if (response.status === 422) {
+          this.errors.error = response.data.errors;
+          // メッセージ登録
+          this.$store.commit('message/setContent', {
+            content: '登録できませんでした',
+            timeout: 6000
+          });
+          return false;
+        }
+
+        if (response.status !== 200) {
+          this.$store.commit('error/setCode', response.status);
+          // メッセージ登録
+          this.$store.commit('message/setContent', {
+            content: '登録できませんでした',
+            timeout: 6000
+          });
+          return false;
+        }
       }
 
-      // 諸々データ更新
+      this.reset();
       await this.fetchDVD();
       this.alterTab();
-      
+
       window.scrollTo({
         top: 0,
         behavior: "smooth"
@@ -2276,6 +2517,77 @@ export default {
       return str.replace(/[\u3041-\u3096]/g, ch =>
         String.fromCharCode(ch.charCodeAt(0) + 0x60)
       );
+    },
+
+    // リセット
+    reset() {
+      // 表示するDVDのデータ
+      this.DVD =  {};
+      // 元データ
+      this.originalDVD = {};
+      // 貸出可否
+      this.rentFlag =  0;  
+      
+      // 編集用元データ
+      this.originalEditDVD = {};
+      // 編集するデータ
+      this.editDVD = {
+        title: null,
+        kana: null,
+        duration_from: '2023-01-01',
+        duration_to: '2023-04-01',
+        locations : [],
+        impression: '',
+        story: '',
+        author: '',
+        costumers: [],
+        lyricist: '',
+        choreo: '',
+        director: '',
+        playerList : [],
+        groups : [],
+        roleImpressionList: [],
+        histories: [],
+        songs: [],
+        others: [],
+        photos: [],
+        rents: [],
+        format: 1,
+        official: true,
+        special: false,
+        url_DVD: '',
+        url_movie: '',
+        url_youtube: '',
+        category: 1
+      };
+      this.playersAll = null;
+      this.playerFlag = false;
+      this.optionPlayers = []; // 役者
+      this.optionGroups = []; // 分類名
+      this.optionRoles = []; // 役名
+      // エラー
+      this.errors = {
+        roleImpressions: [
+          {photos: [null]}
+        ],
+        photos: [],
+        error: null,
+      };
+
+      // 編集要否
+      this.flag = 0;
+      this.flagRent = 0;
+
+      // 写真
+      let photos = [].slice.call(document.querySelectorAll('[id^="detail_photo_"]'));
+      photos.forEach(photo => {
+        photo.value = null;
+      });
+
+      let roleImpresionsPhotos = [].slice.call(document.querySelectorAll('[id^="detail_role_impressions_photo_"]'));
+      roleImpresionsPhotos.forEach(roleImpresionsPhoto => {
+        roleImpresionsPhoto.value = null;
+      });
     },
 
     // 削除ボタン
@@ -2515,8 +2827,10 @@ export default {
       if(this.editDVD.roleImpressionList.length < 50 && this.editDVD.roleImpressionList.length < this.editDVD.playerList.length) {
         // 追加
         this.editDVD.roleImpressionList.push({
-          id: null, order: null, role_key: "", impression: '', photos: [{photo: 0}]
+          id: null, order: null, role_key: "", impression: '', photos: [{id: null, order: null, preview: null, photo: 0}]
         });
+        this.errors.roleImpressions.push({photos: [null]});
+
 
         if(this.editDVD.roleImpressionList.length === 2){
           this.$refs.detail_minus_button_area_role_impressions_form.style.visibility = 'visible';
@@ -2535,6 +2849,7 @@ export default {
       if(this.editDVD.roleImpressionList.length > 1) {
         // 削除
         this.editDVD.roleImpressionList.pop();
+        this.errors.roleImpressions.pop();
 
         if(this.editDVD.roleImpressionList.length === 1){
           this.$refs.detail_minus_button_area_role_impressions_form.style.visibility = 'hidden';
@@ -2550,10 +2865,40 @@ export default {
       }
     },
     // 役を選んだら
-    chooseRole: function(index) {
+    chooseRole(index) {
       const key = this.editDVD.roleImpressionList[index].role_key;
       const chosePlayer = this.editDVD.playerList.find(player => player.key === key);
       this.editDVD.roleImpressionList[index].order = chosePlayer.order;
+    },
+
+    // 役感想_写真フォーム
+    plusRoleImpressionPhotoForm(roleImpressionIndex) {
+      if(this.editDVD.roleImpressionList[roleImpressionIndex].photos.length < 5) {
+        // 追加
+        this.editDVD.roleImpressionList[roleImpressionIndex].photos.push({
+          id: null, order: null, preview: null, photo: 0
+        });
+        this.errors.roleImpressions[roleImpressionIndex].photos.push(null);          
+
+        if(this.editDVD.roleImpressionList[roleImpressionIndex].photos.length === 2) {
+          this.$refs.detail_minus_button_area_role_impression_photos_form[roleImpressionIndex].style.visibility = 'visible';
+        } else if (this.editDVD.roleImpressionList[roleImpressionIndex].photos.length === 5) {
+          this.$refs.detail_add_button_area_role_impression_photos_form[roleImpressionIndex].style.visibility = 'hidden';
+        }
+      }
+    },
+    minusRoleImpressionPhotoForm(roleImpressionIndex) {
+      if(this.editDVD.roleImpressionList[roleImpressionIndex].photos.length > 1) {
+        // 削除
+        this.editDVD.roleImpressionList[roleImpressionIndex].photos.pop();
+        this.errors.roleImpressions[roleImpressionIndex].photos.pop();
+
+        if(this.editDVD.roleImpressionList[roleImpressionIndex].photos.length === 1){
+          this.$refs.detail_minus_button_area_role_impression_photos_form[roleImpressionIndex].style.visibility = 'hidden';
+        } else if (this.editDVD.roleImpressionList[roleImpressionIndex].photos.length === 4) {
+          this.$refs.detail_add_button_area_role_impression_photos_form[roleImpressionIndex].style.visibility = 'visible';
+        }
+      }
     },
 
     // 歴史フォーム
@@ -2686,6 +3031,36 @@ export default {
           this.$refs.detail_minus_button_area_others_form.style.visibility = 'hidden';
         } else if (this.editDVD.others.length === 9) {
           this.$refs.detail_add_button_area_others_form.style.visibility = 'visible';
+        }
+      }
+    },
+
+    // 写真フォーム
+    plusPhotoForm() {
+      if(this.editDVD.photos.length < 10) {
+        // 追加
+        this.editDVD.photos.push({
+          id: null, preview: null, photo: ''
+        });
+        this.errors.photos.push(null);
+
+        if(this.editDVD.photos.length === 2) {
+          this.$refs.detail_minus_button_area_photos_form.style.visibility = 'visible';
+        } else if (this.editDVD.photos.length === 10) {
+          this.$refs.detail_add_button_area_photos_form.style.visibility = 'hidden';
+        }
+      }
+    },
+    minusPhotoForm() {
+      if(this.editDVD.photos.length > 1) {
+        // 削除
+        this.editDVD.photos.pop();
+        this.errors.photos.pop();
+
+        if(this.editDVD.photos.length === 1){
+          this.$refs.detail_minus_button_area_photos_form.style.visibility = 'hidden';
+        } else if (this.editDVD.photos.length === 9) {
+          this.$refs.detail_add_button_area_photos_form.style.visibility = 'visible';
         }
       }
     },

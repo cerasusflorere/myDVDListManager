@@ -45,7 +45,7 @@
             <input type="text" v-model="rentData.name" class="detail-edit-name">
           </div>
           
-          <input type="date" v-model="rentData.startdate" class="detail-edit-date">
+          <input type="date" v-model="rentData.date" class="detail-edit-date">
         </div>
         <div class="list-list-table-box">
           <div class="list-list-table-headerline">
@@ -107,7 +107,7 @@ export default {
       // 編集
       rentData: {
         name:'',
-        startdate:'',
+        date:'',
         check:[]
       },
 
@@ -136,11 +136,15 @@ export default {
       this.DVDs = response.data; // オリジナルデータ
       [...Array(this.DVDs.length)].map(() => this.rentData.check.push(false));
       this.showDVDs = JSON.parse(JSON.stringify(this.DVDs));
+
+      this.showDVDs.sort((a,b) => {
+        return a.duration_from > b.duration_from ? 1 : -1;
+      });
     },
 
     // 貸出
     async rentDVD() {
-      if(this.rentData.name && this.rentData.startdate && this.rentData.check.find(value => value == true)) {
+      if(this.rentData.name && this.rentData.date && this.rentData.check.find(value => value == true)) {
         let rentDVDs = [];
         this.rentData.check.forEach((value, index) => {
           if(value) {
@@ -150,22 +154,25 @@ export default {
 
         const formData = new FormData();
         formData.append('name', this.rentData.name);
-        formData.append('startdate', this.rentData.startdate);
+        formData.append('start_date', this.rentData.date);
         formData.append('rents', JSON.stringify(rentDVDs));
 
         const response = await axios.post('/api/rent', formData);
-        await this.fetchDVDs();
 
-        this.rentData.name = '';
-        this.rentData.startdate = '';
-        this.rentData.check = [];
-        [...Array(this.DVDs.length)].map(() => this.rentData.check.push(false));
+        this.reset();
+        await this.fetchDVDs();
+        this.alterTab();
+
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth"
+        });
       }
     },
 
     // 返却
     async returnDVD() {
-      if(this.rentData.check.find(value => value == true)) {
+      if(this.rentData.date && this.rentData.check.find(value => value == true)) {
         let returnDVDs = [];
         this.rentData.check.forEach((value, index) => {
           if(value) {
@@ -174,16 +181,28 @@ export default {
         });
 
         const formData = new FormData();
+        formData.append('return_date', this.rentData.date);
         formData.append('returns', JSON.stringify(returnDVDs));
 
         const response = await axios.post('/api/return', formData);
-        await this.fetchDVDs();
 
-        this.rentData.name = '';
-        this.rentData.startdate = '';
-        this.rentData.check = [];
-        [...Array(this.DVDs.length)].map(() => this.rentData.check.push(false));
+        this.reset();
+        await this.fetchDVDs();
+        this.alterTab();
+
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth"
+        });
       }
+    },
+
+    // リセット
+    reset() {
+      this.rentData.name = '';
+      this.rentData.date = '';
+      this.rentData.check = [];
+      [...Array(this.DVDs.length)].map(() => this.rentData.check.push(false));
     },
 
     // タブ切り替え

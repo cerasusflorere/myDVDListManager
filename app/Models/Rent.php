@@ -12,12 +12,12 @@ class Rent extends Model
     
     /** 取得時にJSONに含める属性 */
     protected $visible = [
-        'id', 'DVD_id', 'name', 'start_date', 'flag'
+        'id', 'DVD_id', 'name', 'start_date', 'return_date', 'flag'
     ];
 
     /** 登録時にJSONに含める属性 */
     protected $fillable = [
-        'id', 'DVD_id', 'name', 'start_date', 'flag',
+        'id', 'DVD_id', 'name', 'start_date', 'return_date', 'flag', 'created_at', 'updated_at'
     ];
 
     public function getCreatedAtAttribute()
