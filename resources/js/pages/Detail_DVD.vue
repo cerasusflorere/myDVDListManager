@@ -269,7 +269,7 @@
 
     <!-- 編集 -->
     <div v-show="tab === 2" class="detail-edit-area">
-      <form @submit.prevent="confirmEditData">
+      <form @submit.prevent="confirmEditData" class="add-form">
         <div class="add-block">
           <div class="add-block-1">
             <!-- タイトル -->
@@ -294,7 +294,7 @@
                 <div class="add-duration-conection">
                     ~
                 </div>
-                <input type="date" v-model="editDVD.duration_to" class="add-duration"> 
+                <input type="date" v-model="editDVD.duration_to" class="add-duration add-duration-2"> 
               </div>
             </div>
 
@@ -425,7 +425,7 @@
 
             <!-- ゲキ×シネ監督 -->
             <div class="add-area add-author-area">
-              <div class="add-header">
+              <div class="add-header add-header-director">
                 ゲキ×シネ監督
               </div>
               <input type="text" v-model="editDVD.director" class="add-author">
@@ -451,7 +451,7 @@
                 </div>
 
                 <div class="add-players-button-block">
-                  <!-- 表 -->
+                  <!-- 表<大きい用> -->
                   <div class="add-players-box">
                     <!-- ヘッダー -->
                     <div class="add-players-headerline">
@@ -497,9 +497,66 @@
                         </template>
                       </draggable>                        
                     </div>
-                      
-                      
                   </div>
+
+                  <!-- 表<小さい用> -->
+                  <draggable v-model="editDVD.playerList" group="playerList" item-key="key" tag="section" @end="endMovePlayer" class="add-players-box-small">
+                    <!-- 1セット -->
+                    <template #item="{element: player, index: index}">                        
+                      <div class="add-players-bodyblock">
+                        <!-- ヘッダー -->
+                        <div class="add-players-small-header">
+                          {{ index + 1 }}.
+                        </div>
+
+                        <!-- 中身 -->
+                        <div class="add-players-playerline">
+                          <div class="add-players-small-set">
+                            <div class="add-players-cell add-players-header-cell">
+                              分類
+                            </div>
+                            <div class="add-players-cell add-players-line-cell">
+                              <select class="add-players-input add-players-input-text add-players-group" v-model="player.group_key">
+                                <option value="">選択</option>
+                                <option v-for="group in optionGroups" 
+                                  :value="group.key" :key="group.key">
+                                  {{ group.name }}
+                                </option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div class="add-players-small-set">
+                            <div class="add-players-cell add-players-header-cell">
+                              役名
+                            </div>
+                            <div class="add-players-cell add-players-line-cell">
+                              <input type="text" class="add-players-input add-players-input-text add-players-role" v-model="player.role" @input="getRole(player.key)">
+                            </div>
+                          </div>
+
+                          <div class="add-players-small-set">
+                            <div class="add-players-cell add-players-header-cell">
+                              役者
+                            </div>
+                            <div class="add-players-cell add-players-line-cell">
+                              <input type="text" class="add-players-input add-players-input-text add-players-player" v-model="player.player">
+                            </div>
+                          </div>
+
+                          <div class="add-players-small-set">
+                            <div class="add-players-cell add-players-header-cell">
+                              劇団員
+                            </div>
+                            <div class="add-players-cell add-players-line-cell">
+                              <input type="checkbox" class="add-players-input add-players-member" v-model="player.member">
+                            </div>
+                          </div>
+
+                        </div>
+                      </div>
+                    </template>
+                  </draggable>
 
                   <!-- フォームボタン -->
                   <div class="add-add-minus-button-area">
@@ -575,10 +632,10 @@
 
             <!-- 役感想 -->
             <div class="add-area add-role-impressions-area">
-              <!-- 表 -->
+              <!-- 表<大きい用> -->
               <div class="add-role-impressions-box">
                 <!-- ヘッダー -->
-              <div class="add-role-impressions-headerline">
+                <div class="add-role-impressions-headerline">
                   <div class="add-roles-impressions-cell add-role-impressions-header-cell add-role-impressions-cell-role">
                     役名
                   </div>
@@ -612,8 +669,8 @@
                           <!-- 1セット -->
                           <template #item="{element : photo, index: roleImpressionPhotoIndex}">
                             <div class="add-photo-block">
-                              <label :for="'detail_role_impressions_photo_' + roleImpressionIndex + '_' + roleImpressionPhotoIndex" class="add-role-impressions-input add-role-impressions-photo-button">選択</label>
-                              <input type="file" :id="'detail_role_impressions_photo_' + roleImpressionIndex + '_' + roleImpressionPhotoIndex" class="add-role-impressions-photo" @change="previewFileRoleImpression(roleImpressionIndex, roleImpressionPhotoIndex, $event)">
+                              <label :for="'detail_role_impressions_photo_large_' + roleImpressionIndex + '_' + roleImpressionPhotoIndex" class="add-role-impressions-input add-role-impressions-photo-button">選択</label>
+                              <input type="file" :id="'detail_role_impressions_photo_large_' + roleImpressionIndex + '_' + roleImpressionPhotoIndex" class="add-role-impressions-photo" @change="previewFileRoleImpression(roleImpressionIndex, roleImpressionPhotoIndex, $event)">
                               <div class="add-role-impressions-photo-area">
                                 <div v-if="photo.url && photo.photo === 1">
                                   <output class="add-role-impressions-photo-output">
@@ -637,14 +694,14 @@
                         
                         <!-- フォームボタン -->
                         <div class="add-add-minus-button-area add-add-minus-button-area-small">
-                          <div ref="detail_minus_button_area_role_impression_photos_form" class="add-minus-button-area add-minus-button-area-small" style="visibility: hidden">
+                          <div ref="detail_minus_button_area_role_impression_photos_form_large" class="add-minus-button-area add-minus-button-area-small" style="visibility: hidden">
                             <button type="button" class="add-add-button add-add-button-small" @click="minusRoleImpressionPhotoForm(roleImpressionIndex)">
                               <div class="add-add-button-icon add-add-button-icon-small">
                                 <i class="fa-solid fa-minus"></i>
                               </div>
                             </button>
                           </div>
-                          <div ref="detail_add_button_area_role_impression_photos_form" class="add-add-button-area add-minus-button-area-small">
+                          <div ref="detail_add_button_area_role_impression_photos_form_large" class="add-add-button-area add-minus-button-area-small">
                             <button type="button" class="add-add-button add-add-button-small" @click="plusRoleImpressionPhotoForm(roleImpressionIndex)">
                               <div class="add-add-button-icon add-add-button-icon-small">
                                 <i class="fa-solid fa-plus"></i>
@@ -654,9 +711,97 @@
                         </div>
                       </div>
                     </div>
-                  </section>                  
-                </div>                      
+                  </section>
+                </div>
               </div>
+
+              <!-- 表<小さい用> -->
+              <section v-for="(roleImpression, roleImpressionIndex) in editDVD.roleImpressionList" :key="roleImpressionIndex" class="add-role-impressions-box-small">
+                <!-- 1セット -->
+                <div id="add_role_impressions_bodyblock" class="add-role-impression-bodyblock">
+                  <div class="add-role-impressions-small-header">
+                    {{ roleImpressionIndex + 1 }}.
+                  </div>
+                  <!-- 中身 -->
+                  <div class="add-role-impressions-bodyline">
+                    <div class="add-role-impressions-small-set">
+                      <div class="add-roles-impressions-cell add-role-impressions-header-cell">
+                        役名
+                      </div>
+                      <div class="add-roles-impressions-cell add-role-impressions-body-cell">
+                        <select class="add-role-impressions-input add-role-impressions-role" v-model="roleImpression.role_key" @change="chooseRole(roleImpressionIndex)">
+                          <option value="">選択</option>
+                          <option v-for="role in optionRoles" 
+                            :value="role.key" :key="role.key">
+                            {{ role.role }}
+                          </option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="add-role-impressions-small-set add-role-impressions-impression-cell">
+                      <div class="add-roles-impressions-cell add-role-impressions-header-cell add-role-impressions-impression-cell">
+                        感想
+                      </div>
+                      <div class="add-roles-impressions-cell add-role-impressions-body-cell add-role-impressions-impression-cell">
+                        <textarea class="add-role-impressions-input add-role-impressions-impression" v-model="roleImpression.impression" placeholder="どうだった？"></textarea>  
+                      </div>
+                    </div>                    
+                    
+                    <div class="add-role-impressions-small-set add-role-impressions-photos-cell">
+                      <div class="add-roles-impressions-cell add-role-impressions-header-cell add-role-impressions-photos-cell">
+                        写真
+                      </div>
+                      <div class="add-roles-impressions-cell add-role-impressions-body-cell">
+                        <draggable v-model="roleImpression.photos" group="roleImpressionPhotos" item-key="key" tag="section" class="add-role-impression-photos-block">
+                          <!-- 1セット -->
+                          <template #item="{element : photo, index: roleImpressionPhotoIndex}">
+                            <div class="add-photo-block">
+                              <label :for="'detail_role_impressions_photo_small_' + roleImpressionIndex + '_' + roleImpressionPhotoIndex" class="add-role-impressions-input add-role-impressions-photo-button">選択</label>
+                              <input type="file" :id="'detail_role_impressions_photo_small_' + roleImpressionIndex + '_' + roleImpressionPhotoIndex" class="add-role-impressions-photo" @change="previewFileRoleImpression(roleImpressionIndex, roleImpressionPhotoIndex, $event)">
+                              <div class="add-role-impressions-photo-area">
+                                <div v-if="photo.url && photo.photo === 1">
+                                  <output class="add-role-impressions-photo-output">
+                                    <button type="button" class="add-role-impressions-photo-resetbutton" @click="deletePhotoRoleImpression(roleImpressionIndex, roleImpressionPhotoIndex)"><i class="fa-solid fa-xmark"></i></button>
+                                    <img :src="photo.url" :alt="roleImpression.role" class="add-role-impressions-photo-preview">
+                                  </output>
+                                </div>
+                                <div v-else-if="photo.photo">
+                                  <output v-if="photo.preview" class="add-role-impressions-photo-output">
+                                    <button type="button" class="add-role-impressions-photo-resetbutton" @click="resetPhotoRoleImpression(roleImpressionIndex, roleImpressionPhotoIndex)"><i class="fa-solid fa-xmark"></i></button>
+                                    <img :src="photo.preview" alt="" class="add-role-impressions-photo-preview">
+                                  </output>
+                                </div>
+
+                                <div v-if="errors.roleImpressions[roleImpressionIndex].photos[roleImpressionPhotoIndex]" class="add-error-message-role-impressions-photo">{{ errors.roleImpressions[roleImpressionIndex].photos[roleImpressionPhotoIndex] }}</div>
+                                  
+                              </div>
+                            </div>
+                          </template>
+                        </draggable>
+                      
+                        <!-- フォームボタン -->
+                        <div class="add-add-minus-button-area add-add-minus-button-area-small">
+                          <div ref="detail_minus_button_area_role_impression_photos_form_small" class="add-minus-button-area add-minus-button-area-small" style="visibility: hidden">
+                            <button type="button" class="add-add-button add-add-button-small" @click="minusRoleImpressionPhotoForm(roleImpressionIndex)">
+                              <div class="add-add-button-icon add-add-button-icon-small">
+                                <i class="fa-solid fa-minus"></i>
+                              </div>
+                            </button>
+                          </div>
+                          <div ref="detail_add_button_area_role_impression_photos_form_small" class="add-add-button-area add-minus-button-area-small">
+                            <button type="button" class="add-add-button add-add-button-small" @click="plusRoleImpressionPhotoForm(roleImpressionIndex)">
+                              <div class="add-add-button-icon add-add-button-icon-small">
+                                <i class="fa-solid fa-plus"></i>
+                              </div>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
 
               <!-- フォームボタン -->
               <div class="add-add-minus-button-area">
@@ -684,7 +829,7 @@
               </div>
 
               <div class="add-others-button-block">
-                <!-- 表 -->
+                <!-- 表<大きい用> -->
                 <div class="add-others-box">
                   <!-- ヘッダー -->
                   <div class="add-others-headerline">
@@ -714,6 +859,40 @@
                   </div>
                 </div>
 
+                <!-- 表<小さい用> -->
+                <draggable v-model="editDVD.histories" group="histories" item-key="key" tag="section" class="add-others-box-small">                    
+                  <template #item="{element: history, index: index}">
+                    <!-- 1セット -->
+                    <div class="add-others-bodyblock">
+                      <!-- ヘッダー -->
+                      <div class="add-others-small-header">
+                        {{ index + 1 }}.
+                      </div>
+
+                      <!-- 中身 -->
+                      <div class="add-others-bodyline">
+                        <div class="add-others-small-set">
+                          <div class="add-others-cell add-others-header-cell">
+                            題名
+                          </div>
+                          <div class="add-others-cell add-others-body-cell">
+                            <input type="text" class="add-others-input add-others-title" v-model="history.title">
+                          </div>
+                        </div>
+
+                        <div class="add-others-small-set add-others-impression-cell">
+                          <div class="add-others-cell add-others-header-cell add-others-impression-cell">
+                            歴史
+                          </div>
+                          <div class="add-others-cell add-others-body-cell add-others-impression-cell">
+                            <textarea class="add-others-input add-others-impression" placeholder="本当は？" v-model="history.history"></textarea>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                </draggable>
+
                 <!-- フォームボタン -->
                 <div class="add-add-minus-button-area">
                   <div ref="detail_minus_button_area_histories_form" class="add-minus-button-area" style="visibility: hidden">
@@ -741,7 +920,7 @@
               </div>
 
               <div class="add-others-button-block">
-                <!-- 表 -->
+                <!-- 表<大きい用> -->
                 <div class="add-others-box">
                   <!-- ヘッダー -->
                   <div class="add-others-headerline">
@@ -838,6 +1017,107 @@
                   </div>
                 </div>
 
+                <!-- 表<小さい用> -->
+                <draggable v-model="editDVD.songs" group="songs" item-key="key" tag="section" @end="endMoveSong" class="add-others-box-small">
+                  <!-- 1セット -->
+                  <template #item="{element : song, index: songIndex}">
+                    <div class="add-others-bodyblock">
+                      <div class="add-others-small-header">
+                        {{ songIndex + 1 }}.
+                      </div>
+
+                      <!-- 中身 -->
+                      <div class="add-others-bodyline">
+                        <div class="add-others-small-set">
+                          <div class="add-others-cell add-others-header-cell add-others-cell-title">
+                            題名
+                          </div>
+                          <div class="add-others-cell add-others-body-cell add-others-cell-title">
+                            <input type="text" class="add-others-input add-others-title" v-model="song.title">
+                          </div>
+                        </div>
+
+                        <div class="add-others-small-set add-others-singers-cell">
+                          <div class="add-others-cell add-others-header-cell add-songs-cell-singer">
+                            歌い手
+                          </div>
+                          <div class="add-others-cell add-others-body-cell add-songs-cell-singer add-singers-body-cell-singer">
+                            <div class="add-song-singer-area">
+                              <draggable v-model="song.singers" group="songList_singers" item-key="key" tag="section">
+                                <template #item="{element : singer, index: singIndex}">
+                                  <div class="add-song-singers-area">
+                                    <div class="add-song-singer-type-area">
+                                      <div class="add-song-singer-type-box">
+                                        <label :for="'detail_song_role_' + songIndex + '_' + singIndex">キャスト</label>
+                                        <input :id="'detail_song_role_' + songIndex + '_' + singIndex" type="radio" class="add-song-singer-type-radio" value="role" v-model="singer.type">
+                                      </div>
+                                      <div class="add-song-singer-type-box">
+                                        <label :for="'detail_song_group_' + songIndex + '_' + singIndex">分類</label>
+                                        <input :id="'detail_song_group_' + songIndex + '_' + singIndex" type="radio" class="add-song-singer-type-radio" value="group" v-model="singer.type">
+                                      </div>
+                                      <div class="add-song-singer-type-box">
+                                        <label :for="'detail_song_input_' + songIndex + '_' + singIndex">入力</label>
+                                        <input :id="'detail_song_input_' + songIndex + '_' + singIndex" type="radio" class="add-song-singer-type-radio" value="name" v-model="singer.type">
+                                      </div>
+                                    </div>
+
+                                    <div class="add-song-singer-select-area">
+                                      <select class="add-song-singer-select-input" v-if="singer.type === 'role'" v-model="singer.role_key">
+                                        <option value="">選択</option>
+                                        <option v-for="role in optionRoles" 
+                                          :value="role.key" :key="role.key">
+                                          {{ role.role }}
+                                        </option>
+                                      </select>
+
+                                      <select class="add-song-singer-select-input" v-if="singer.type === 'group'" v-model="singer.group_key">
+                                        <option value="">選択</option>
+                                        <option v-for="group in optionGroups" 
+                                          :value="group.key" :key="group.key">
+                                          {{ group.name }}
+                                        </option>
+                                      </select>
+
+                                      <input type="text" class="add-song-singer-select-input" v-if="singer.type === 'name'" v-model="singer.name">
+                                    </div>
+                                  </div>
+                                </template>
+                              </draggable>
+
+                              <!-- フォームボタン -->
+                              <div class="add-add-minus-button-area add-add-minus-button-area-small">
+                                <div :ref="'detail_minus_button_area_singers_form_' + songIndex" class="add-minus-button-area add-minus-button-area-small" style="visibility: hidden">
+                                  <button type="button" class="add-add-button add-add-button-small" @click="minusSingerForm(songIndex)">
+                                    <div class="add-add-button-icon add-add-button-icon-small">
+                                      <i class="fa-solid fa-minus"></i>
+                                    </div>
+                                  </button>
+                                </div>
+                                <div :ref="'detail_add_button_area_singers_form_' + songIndex" class="add-add-button-area add-minus-button-area-small">
+                                  <button type="button" class="add-add-button add-add-button-small" @click="plusSingerForm(songIndex)">
+                                    <div class="add-add-button-icon add-add-button-icon-small">
+                                      <i class="fa-solid fa-plus"></i>
+                                    </div>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>  
+                          </div>
+                        </div>
+
+                        <div class="add-others-small-set add-others-impression-cell">
+                          <div class="add-others-cell add-others-header-cell add-songs-cell-impression">
+                            感想
+                          </div>
+                          <div class="add-others-cell add-others-body-cell add-songs-cell-impression">
+                            <textarea class="add-others-input add-others-impression" placeholder="どうだった？" v-model="song.impression"></textarea>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                </draggable>
+
                 <!-- フォームボタン -->
                 <div class="add-add-minus-button-area">
                   <div ref="detail_minus_button_area_songs_form" class="add-minus-button-area" style="visibility: hidden">
@@ -866,7 +1146,7 @@
               </div>
 
               <div class="add-others-button-block">
-                <!-- 表 -->
+                <!-- 表<大きい用> -->
                 <div class="add-others-box">
                   <!-- ヘッダー -->
                   <div class="add-others-headerline">
@@ -895,6 +1175,39 @@
                     </draggable>
                   </div>
                 </div>
+
+                <!-- 表<小さい用> -->
+                <draggable v-model="editDVD.others" group="others" item-key="key" tag="section" class="add-others-box-small">
+                  <!-- 1セット -->
+                  <template #item="{element: other, index: index}">
+                    <div class="add-others-bodyblock">
+                      <div class="add-others-small-header">
+                        {{ index + 1 }}.
+                      </div>
+
+                      <!-- 中身 -->
+                      <div class="add-others-bodyline">
+                        <div class="add-others-small-set">
+                          <div class="add-others-cell add-others-header-cell add-others-cell-title">
+                            題目
+                          </div>
+                          <div class="add-others-cell add-others-body-cell add-others-cell-title">
+                            <input type="text" class="add-others-input add-others-title" v-model="other.title">
+                          </div>
+                        </div>
+                        
+                        <div class="add-others-small-set add-others-impression-cell">
+                          <div class="add-others-cell add-others-header-cell add-others-cell-impression">
+                            感想
+                          </div>
+                          <div class="add-others-cell add-others-body-cell add-others-cell-impression">
+                            <textarea class="add-others-input add-others-impression" placeholder="どうだった？" v-model="other.impression"></textarea>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                </draggable>
 
                 <!-- フォームボタン -->
                 <div class="add-add-minus-button-area">
@@ -1650,15 +1963,19 @@ export default {
         this.$nextTick(() => {
           this.editDVD.roleImpressionList.forEach((roleImpression, index) => {
             if(roleImpression.photos.length < 10) {
-              this.$refs.detail_add_button_area_role_impression_photos_form[index].style.visibility = 'visible';
+              this.$refs.detail_add_button_area_role_impression_photos_form_large[index].style.visibility = 'visible';
+              this.$refs.detail_add_button_area_role_impression_photos_form_small[index].style.visibility = 'visible';
             } else {
-              this.$refs.detail_add_button_area_role_impression_photos_form[index].style.visibility = 'hidden';
+              this.$refs.detail_add_button_area_role_impression_photos_form_large[index].style.visibility = 'hidden';
+              this.$refs.detail_add_button_area_role_impression_photos_form_small[index].style.visibility = 'hidden';
             }
             
             if(roleImpression.photos.length > 1) {
-              this.$refs.detail_minus_button_area_role_impression_photos_form[index].style.visibility = 'visible';
+              this.$refs.detail_minus_button_area_role_impression_photos_form_large[index].style.visibility = 'visible';
+              this.$refs.detail_minus_button_area_role_impression_photos_form_small[index].style.visibility = 'visible';
             } else {
-              this.$refs.detail_minus_button_area_role_impression_photos_form[index].style.visibility = 'hidden';
+              this.$refs.detail_minus_button_area_role_impression_photos_form_large[index].style.visibility = 'hidden';
+              this.$refs.detail_minus_button_area_role_impression_photos_form_small[index].style.visibility = 'hidden';
             }
           });
 
@@ -1719,15 +2036,28 @@ export default {
     },
 
     // 入力された分類名をプルダウンメニューに追加
-    getGroup: function(key) {
+    getGroup(key) {
       const optionGroup = this.optionGroups.find(group => group.key === key);
       const group = this.editDVD.groups.find(group => group.key === key);
 
       if(!optionGroup && group.name) {
-        const newGroupOption = {id: null, key: key, order: group.order, name: group.name};
-        this.optionGroups.push(newGroupOption);
-      } else {
-        optionGroup.name = group.name;
+        if(group.name.replace(/\s+/g,"")) {
+          const newGroupOption = {id: null, key: key, order: group.order, name: group.name.replace(/\s+/g,"")};
+          this.optionGroups.push(newGroupOption);
+          if(this.optionGroups.length - 1 !== this.editDVD.groups.length) {
+            this.optionGroups.sort((a, b) => a.order - b.order);
+          }
+        }
+      } else if(optionGroup) {
+        if(!group.name.replace(/\s+/g,"")) {
+          this.optionGroups.some((group, index) => {
+            if (group.key === optionGroup.key) {
+              this.optionGroups.splice(index, 1);
+            }
+          });
+        } else {
+          optionGroup.name = group.name.replace(/\s+/g,"");
+        }
       }
     },
 
@@ -1737,11 +2067,24 @@ export default {
       const player = this.editDVD.playerList.find(role => role.key === key);
 
       if(!optionRole && player.role) {
-        const newRoleOption = {id: null, key: key, order:player.order, role:player.role};
-        this.optionRoles.push(newRoleOption);
-      } else {
-        optionRole.role = player.role;
-      }
+          if(player.role.replace(/\s+/g,"")) {
+            const newRoleOption = {id: null, key: key, order: player.order, role: player.role.replace(/\s+/g,"")};
+            this.optionRoles.push(newRoleOption);
+            if(this.optionRoles.length - 1 !== this.editDVD.playerList.length) {
+              this.optionRoles.sort((a, b) => a.order - b.order);
+            }
+          }
+        } else if(optionRole) {
+          if(!player.role.replace(/\s+/g,"")) {
+            this.optionRoles.some((role, index) => {
+              if (role.key === optionRole.key) {
+                this.optionRoles.splice(index, 1);
+              }
+            });
+          } else {
+            optionRole.role = player.role.replace(/\s+/g,"");
+          }
+        }
     },
 
     // 写真プレビュー
@@ -1786,7 +2129,8 @@ export default {
     resetPhotoRoleImpression(roleImpressionIndex, roleImpresionsPhotoIndex) {
       this.editDVD.roleImpressionList[roleImpressionIndex].photos[roleImpresionsPhotoIndex].preview = null;
       this.editDVD.roleImpressionList[roleImpressionIndex].photos[roleImpresionsPhotoIndex].photo = '';
-      document.getElementById('detail_role_impressions_photo_' + roleImpressionIndex + '_' + roleImpresionsPhotoIndex).value = null;
+      document.getElementById('detail_role_impressions_photo_large_' + roleImpressionIndex + '_' + roleImpresionsPhotoIndex).value = null;
+      document.getElementById('detail_role_impressions_photo_small_' + roleImpressionIndex + '_' + roleImpresionsPhotoIndex).value = null;
     },
 
     // 写真を見せない
@@ -2584,8 +2928,13 @@ export default {
         photo.value = null;
       });
 
-      let roleImpresionsPhotos = [].slice.call(document.querySelectorAll('[id^="detail_role_impressions_photo_"]'));
-      roleImpresionsPhotos.forEach(roleImpresionsPhoto => {
+      let roleImpresionsPhotosLarge = [].slice.call(document.querySelectorAll('[id^="detail_role_impressions_photo_large_"]'));
+      roleImpresionsPhotosLarge.forEach(roleImpresionsPhoto => {
+        roleImpresionsPhoto.value = null;
+      });
+
+      let roleImpresionsPhotosSmall = [].slice.call(document.querySelectorAll('[id^="detail_role_impressions_photo_small_"]'));
+      roleImpresionsPhotosSmall.forEach(roleImpresionsPhoto => {
         roleImpresionsPhoto.value = null;
       });
     },
@@ -2881,9 +3230,11 @@ export default {
         this.errors.roleImpressions[roleImpressionIndex].photos.push(null);          
 
         if(this.editDVD.roleImpressionList[roleImpressionIndex].photos.length === 2) {
-          this.$refs.detail_minus_button_area_role_impression_photos_form[roleImpressionIndex].style.visibility = 'visible';
+          this.$refs.detail_minus_button_area_role_impression_photos_form_large[roleImpressionIndex].style.visibility = 'visible';
+          this.$refs.detail_minus_button_area_role_impression_photos_form_small[roleImpressionIndex].style.visibility = 'visible';
         } else if (this.editDVD.roleImpressionList[roleImpressionIndex].photos.length === 5) {
-          this.$refs.detail_add_button_area_role_impression_photos_form[roleImpressionIndex].style.visibility = 'hidden';
+          this.$refs.detail_add_button_area_role_impression_photos_form_large[roleImpressionIndex].style.visibility = 'hidden';
+          this.$refs.detail_add_button_area_role_impression_photos_form_small[roleImpressionIndex].style.visibility = 'hidden';
         }
       }
     },
@@ -2894,9 +3245,11 @@ export default {
         this.errors.roleImpressions[roleImpressionIndex].photos.pop();
 
         if(this.editDVD.roleImpressionList[roleImpressionIndex].photos.length === 1){
-          this.$refs.detail_minus_button_area_role_impression_photos_form[roleImpressionIndex].style.visibility = 'hidden';
+          this.$refs.detail_minus_button_area_role_impression_photos_form_large[roleImpressionIndex].style.visibility = 'hidden';
+          this.$refs.detail_minus_button_area_role_impression_photos_form_small[roleImpressionIndex].style.visibility = 'hidden';
         } else if (this.editDVD.roleImpressionList[roleImpressionIndex].photos.length === 4) {
-          this.$refs.detail_add_button_area_role_impression_photos_form[roleImpressionIndex].style.visibility = 'visible';
+          this.$refs.detail_add_button_area_role_impression_photos_form_large[roleImpressionIndex].style.visibility = 'visible';
+          this.$refs.detail_add_button_area_role_impression_photos_form_small[roleImpressionIndex].style.visibility = 'visible';
         }
       }
     },

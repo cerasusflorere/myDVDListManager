@@ -503,6 +503,9 @@
     align-items: stretch;
     width: 40rem;
   }
+  .add-players-box-small, .add-role-impressions-box-small, .add-others-box-small {
+    display: none;
+  }
   .add-players-headerline {
     background-color: #ffffe5;   
     display: flex;
@@ -2047,6 +2050,160 @@
 @media only screen and (max-width: 900px) {
   .detail-show-role-role {
     min-width: 50%;
+  }
+}
+
+/* 登録画面 */
+@media only screen and (max-width: 1210px) {
+  .add, .add-form, .add-block-1, .add-title, .add-title-kana-area, .add-title-kana, .add-locations-button-area, .add-locations, .add-location, .add-impression, .add-story,
+  .add-players-all, .add-players-area, .add-players-button-block, .add-players-box-small, .add-players-bodyblock, .add-players-playerline, .add-role-imressions-area, .add-role-impressions-box-small, .add-role-imressions-bodyblock, .add-role-impressions-bodyline,
+  .add-others-button-block, .add-others-box-small, .add-others-bodyblock, .add-others-bodyline, .add-photo-area {
+    width: 100%;
+  }
+  .add-block {
+    flex-direction: column;
+  }
+  .add-block-1 {
+    gap: 1rem;
+  }
+  .add-block-2 {
+    position: relative;
+  }
+  .add-area {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+  }
+  .add-title-kana-area, .add-duration-input-area,  .add-locations-button-area, .add-locations, .add-location, .add-costumers-bodyblock {
+    gap: 0.5rem;
+  }
+  .add-title {
+    height: 2.5rem;
+  }
+  .add-locations-button-area {
+    flex-direction: column;
+  }
+  .add-duration-input-area {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: baseline;
+  }
+  .add-duration-2 {
+    margin-left: auto;
+  }
+  .add-location {
+    gap: 5%;
+  }
+  .add-location-prefecture {
+    width: 40%;
+  }
+  .add-location-theater {
+    width: 55%;
+  }
+  .add-header-director {
+    width: auto;
+  }
+  .add-players-all-button {
+    margin-left: auto;
+  }
+  .add-players-area, .add-photo-area {
+    display: flex;
+    flex-direction: column;
+  }
+  .add-players-box, .add-role-impressions-box, .add-others-box {
+    display: none;
+  }
+  .add-players-box-small, .add-role-impressions-box-small, .add-others-box-small {
+    display: flex;
+    flex-direction: column;
+  }
+  .add-players-bodyblock, .add-role-impression-bodyblock, .add-others-bodyblock {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .add-players-playerline, .add-role-impressions-bodyline, .add-others-bodyline {
+    flex-direction: column;
+  }
+  .add-players-small-set, .add-role-impressions-small-set, .add-others-small-set {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: space-between;
+    height: 3rem;
+  }
+  .add-players-small-header, .add-role-impressions-small-header, .add-others-small-header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: .01rem solid #acacac;
+    width: 100%;
+    height: 1.8rem;
+    background-color: #ffffe5;
+  }
+  .add-players-cell, .add-roles-impressions-cell, .add-others-cell {
+    height: auto;
+    min-height: auto;
+  }
+  .add-players-header-cell, .add-role-impressions-header-cell, .add-others-header-cell {
+    width: 30%;
+    background-color: #ffffe5;
+  }
+  .add-players-line-cell, .add-role-impressions-body-cell, .add-others-body-cell {
+    width: 70%;
+  }
+  .add-groups-area {
+    flex-direction: column;
+  }
+  .add-role-impressions-area {
+    margin: 0;
+  }
+  .add-role-impressions-role, .add-role-impressions-impression, .add-others-input, .add-song-singer-select-area {
+    width: 90%;
+  }
+  .add-role-impressions-impression-cell {
+    min-height: 6rem;
+  }
+  .add-others-header-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .add-others-impression-cell {
+    min-height: 7rem;
+  }
+  .add-role-impressions-photos-cell {
+    height: auto;
+  }
+  .add-role-impression-photos-block .add-photo-block, .add-photos-button-block {
+    gap: 0.2%;
+  }
+  .add-role-impressions-area {
+    align-items: flex-end;
+    gap: 0;
+  }
+  .add-role-impressions-photo-button {
+    width: 28%;
+  }
+  .add-role-impressions-photo-area {
+    max-width: 70%;
+  }
+  .add-error-message-role-impressions-photo {
+    padding: 0;
+  }
+  .add-others-singers-cell {
+    height: auto;
+  }
+  .add-photo-preview-area {
+    height: auto;
+  }
+
+  /* 編集画面 */
+  .detail-edit-area {
+    width: 100%;
   }
 }
 
