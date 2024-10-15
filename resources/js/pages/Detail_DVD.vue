@@ -136,7 +136,7 @@
 
       <!-- ゲキ×シネ監督 -->
       <div class="detail-show-author-area" v-if="DVD.director">
-        <div class="detail-show-header">ゲキ×シネ監督</div>
+        <div class="detail-show-header detail-show-header-director">ゲキ×シネ監督</div>
         <div class="detail-show-author">{{ DVD.director }}</div>
       </div>
 
@@ -150,7 +150,7 @@
       <div class="detail-show-roles-area detail-show-other-flex" v-if="DVD.roles.length">
         <div class="detail-show-header">配役</div>
         <div class="detail-show-roles-block detail-show-other-width">
-          <div class="detail-show-role-area" v-for="role in DVD.roles">
+          <div ref="detail_show_role_areas" class="detail-show-role-area" v-for="role in DVD.roles">
             <div class="detail-show-role-role" v-if="role.role">{{ role.role }}:</div>
             <div class="detail-show-role-role" v-else></div>
             <div class="detail-show-role-content" v-if="role.player">{{ role.player }}</div>
@@ -1799,6 +1799,16 @@ export default {
         }
 
         // 画面の大きさによって表示変更
+        // 配役
+        if(this.$refs.detail_show_role_areas) {
+          this.$refs.detail_show_role_areas.forEach(area => {
+            if(area.clientHeight > 24) {
+              area.classList.add('detail-show-role-area-column-1');
+              area.children[1].classList.add('detail-show-role-content-column-2');
+            }
+          });
+        }
+
         // 役感想
         if(this.$refs.detail_show_role_impression_headers) {
           this.$refs.detail_show_role_impression_headers.forEach(header => {
