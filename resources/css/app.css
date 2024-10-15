@@ -503,7 +503,7 @@
     align-items: stretch;
     width: 40rem;
   }
-  .add-players-box-small {
+  .add-players-box-small, .add-role-impressions-box-small, .add-others-box-small {
     display: none;
   }
   .add-players-headerline {
@@ -2199,6 +2199,11 @@
   }
   .add-photo-preview-area {
     height: auto;
+  }
+
+  /* 編集画面 */
+  .detail-edit-area {
+    width: 100%;
   }
 }
 

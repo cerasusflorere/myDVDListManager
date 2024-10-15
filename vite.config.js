@@ -10,9 +10,23 @@ export default defineConfig({
     build: {
         rollupOptions: {
             output: {
-                manualChunks: {
-                    vue: ['vue']
-                },
+                // manualChunks: {
+                    // vue: ['vue']
+                // },
+                manualChunks(id) {
+                    if(id.includes("vue")) {
+                        if(id.includes("node_modules")) {
+                            return "vue-vendor";
+                        }
+                        if(id.includes("js")) {
+                            return "vue-js";
+                        } 
+                    }
+                    if(id.includes("node_modules")) {
+                        // return id.toString().split('node_modules/')[1].split('/')[0].toString();
+                        return "vendor";
+                    }
+                }
             },
             plugins: [visualizer()],
         },
@@ -32,7 +46,7 @@ export default defineConfig({
                     includeAbsolute: false,
                 },
             },
-        }),
+        })
     ],
     resolve: {
         alias: {

@@ -182,7 +182,7 @@
               </div>
 
               <div class="add-players-button-block">
-                <!-- 表<大きい用 -->
+                <!-- 表<大きい用> -->
                 <div class="add-players-box">
                   <!-- ヘッダー -->
                   <div class="add-players-headerline">
@@ -226,19 +226,18 @@
                           </div>
                         </div>
                       </template>
-                    </draggable>
-                      
+                    </draggable>                      
                   </div>
                 </div>
 
-                <!-- 表<小さい用 -->
+                <!-- 表<小さい用> -->
                 <draggable v-model="registerForm.playerList" group="playerList" item-key="key" tag="section" @end="endMovePlayer" class="add-players-box-small">
                   <!-- 1セット -->
                   <template #item="{element: player, index: index}">                        
                     <div class="add-players-bodyblock">
                       <!-- ヘッダー -->
                       <div class="add-players-small-header">
-                        {{ index + 1 }}人目
+                        {{ index + 1 }}.
                       </div>
 
                       <!-- 中身 -->
@@ -364,7 +363,7 @@
 
           <!-- 役感想 -->
           <div class="add-area add-role-impressions-area">
-            <!-- 表<大きい用 -->
+            <!-- 表<大きい用> -->
             <div class="add-role-impressions-box">
               <!-- ヘッダー -->
               <div class="add-role-impressions-headerline">
@@ -401,8 +400,8 @@
                          <!-- 1セット -->
                         <template #item="{element : photo, index: roleImpressionPhotoIndex}">
                          <div class="add-photo-block">
-                            <label :for="'add_role_impressions_photo_' + roleImpressionIndex + '_' + roleImpressionPhotoIndex" class="add-role-impressions-input add-role-impressions-photo-button">選択</label>
-                            <input type="file" :id="'add_role_impressions_photo_' + roleImpressionIndex + '_' + roleImpressionPhotoIndex" class="add-role-impressions-photo" @change="previewFileRoleImpression(roleImpressionIndex, roleImpressionPhotoIndex, $event)">
+                            <label :for="'add_role_impressions_photo_large_' + roleImpressionIndex + '_' + roleImpressionPhotoIndex" class="add-role-impressions-input add-role-impressions-photo-button">選択</label>
+                            <input type="file" :id="'add_role_impressions_photo_large_' + roleImpressionIndex + '_' + roleImpressionPhotoIndex" class="add-role-impressions-photo" @change="previewFileRoleImpression(roleImpressionIndex, roleImpressionPhotoIndex, $event)">
                             <div class="add-role-impressions-photo-area">
                               <output v-if="photo.preview" class="add-role-impressions-photo-output">
                                 <button type="button" class="add-role-impressions-photo-resetbutton" @click="resetPhotoRoleImpression(roleImpressionIndex, roleImpressionPhotoIndex)"><i class="fa-solid fa-xmark"></i></button>
@@ -438,12 +437,12 @@
               </div>
             </div>
 
-            <!-- 表<小さい用 -->
+            <!-- 表<小さい用> -->
             <section v-for="(roleImpression, roleImpressionIndex) in registerForm.roleImpressionList" :key="roleImpressionIndex" class="add-role-impressions-box-small">
               <!-- 1セット -->
               <div id="add_role_impressions_bodyblock" class="add-role-impression-bodyblock">
                 <div class="add-role-impressions-small-header">
-                  {{ roleImpressionIndex + 1 }}人目
+                  {{ roleImpressionIndex + 1 }}.
                 </div>
                 <!-- 中身 -->
                 <div class="add-role-impressions-bodyline">
@@ -480,8 +479,8 @@
                         <!-- 1セット -->
                         <template #item="{element : photo, index: roleImpressionPhotoIndex}">
                         <div class="add-photo-block">
-                            <label :for="'add_role_impressions_photo_' + roleImpressionIndex + '_' + roleImpressionPhotoIndex" class="add-role-impressions-input add-role-impressions-photo-button">選択</label>
-                            <input type="file" :id="'add_role_impressions_photo_' + roleImpressionIndex + '_' + roleImpressionPhotoIndex" class="add-role-impressions-photo" @change="previewFileRoleImpression(roleImpressionIndex, roleImpressionPhotoIndex, $event)">
+                            <label :for="'add_role_impressions_photo_small_' + roleImpressionIndex + '_' + roleImpressionPhotoIndex" class="add-role-impressions-input add-role-impressions-photo-button">選択</label>
+                            <input type="file" :id="'add_role_impressions_photo_small_' + roleImpressionIndex + '_' + roleImpressionPhotoIndex" class="add-role-impressions-photo" @change="previewFileRoleImpression(roleImpressionIndex, roleImpressionPhotoIndex, $event)">
                             <div class="add-role-impressions-photo-area">
                               <output v-if="photo.preview" class="add-role-impressions-photo-output">
                                 <button type="button" class="add-role-impressions-photo-resetbutton" @click="resetPhotoRoleImpression(roleImpressionIndex, roleImpressionPhotoIndex)"><i class="fa-solid fa-xmark"></i></button>
@@ -543,7 +542,7 @@
             </div>
 
             <div class="add-others-button-block">
-              <!-- 表<大きい用 -->
+              <!-- 表<大きい用> -->
               <div class="add-others-box">
                 <!-- ヘッダー -->
                 <div class="add-others-headerline">
@@ -573,14 +572,14 @@
                 </div>
               </div>
 
-              <!-- 表<小さい用 -->
+              <!-- 表<小さい用> -->
               <draggable v-model="registerForm.historyList" group="historyList" item-key="key" tag="section" class="add-others-box-small">                    
                 <template #item="{element: history, index: index}">
                   <!-- 1セット -->
                   <div class="add-others-bodyblock">
                     <!-- ヘッダー -->
                     <div class="add-others-small-header">
-                      {{ index + 1 }}人目
+                      {{ index + 1 }}.
                     </div>
 
                     <!-- 中身 -->
@@ -603,7 +602,7 @@
                         </div>
                       </div>
                     </div>
-                  </div>                      
+                  </div>
                 </template>
               </draggable>
 
@@ -634,7 +633,7 @@
             </div>
 
             <div class="add-others-button-block">
-              <!-- 表<大きい用 -->
+              <!-- 表<大きい用> -->
               <div class="add-others-box">
                 <!-- ヘッダー -->
                 <div class="add-others-headerline">
@@ -731,13 +730,13 @@
                 </div>
               </div>
 
-              <!-- 表<小さい用 -->
+              <!-- 表<小さい用> -->
               <draggable v-model="registerForm.songList" group="songList" item-key="key" tag="section" @end="endMoveSong" class="add-others-box-small">
                 <!-- 1セット -->
                 <template #item="{element : song, index: songIndex}">
                   <div class="add-others-bodyblock">
                     <div class="add-others-small-header">
-                      {{ songIndex + 1 }}つ目
+                      {{ songIndex + 1 }}.
                     </div>
 
                     <!-- 中身 -->
@@ -859,7 +858,7 @@
             </div>
 
             <div class="add-others-button-block">
-              <!-- 表<大きい用 -->
+              <!-- 表<大きい用> -->
               <div class="add-others-box">
                 <!-- ヘッダー -->
                 <div class="add-others-headerline">
@@ -889,13 +888,13 @@
                 </div>
               </div>
 
-              <!-- 表<小さい用 -->
+              <!-- 表<小さい用> -->
               <draggable v-model="registerForm.otherList" group="otherList" item-key="key" tag="section" class="add-others-box-small">
                 <!-- 1セット -->
                 <template #item="{element: other, index: index}">
                   <div class="add-others-bodyblock">
                     <div class="add-others-small-header">
-                      {{ index + 1 }}つ目
+                      {{ index + 1 }}.
                     </div>
 
                     <!-- 中身 -->
@@ -916,7 +915,7 @@
                         <div class="add-others-cell add-others-body-cell add-others-cell-impression">
                           <textarea class="add-others-input add-others-impression" placeholder="どうだった？" v-model="other.impression"></textarea>
                         </div>
-                      </div>                          
+                      </div>
                     </div>
                   </div>
                 </template>
@@ -1336,7 +1335,8 @@
       resetPhotoRoleImpression(roleImpressionIndex, photoIndex) {
         this.registerForm.roleImpressionList[roleImpressionIndex].photoList[photoIndex].preview = null;
         this.registerForm.roleImpressionList[roleImpressionIndex].photoList[photoIndex].photo = null;
-        document.getElementById('add_role_impressions_photo_' + roleImpressionIndex + '_' + photoIndex).value = null;
+        document.getElementById('add_role_impressions_photo_large_' + roleImpressionIndex + '_' + photoIndex).value = null;
+        document.getElementById('add_role_impressions_photo_small_' + roleImpressionIndex + '_' + photoIndex).value = null;
       },
 
       // 写真プレビュー
@@ -1761,8 +1761,13 @@
           photo.value = null;
         });
 
-        let roleImpressionsPhotos = [].slice.call(document.querySelectorAll('[id^="add_role_impressions_photo_"]'));
-        roleImpressionsPhotos.forEach(roleImpressionsPhoto => {
+        let roleImpressionsPhotosLarge = [].slice.call(document.querySelectorAll('[id^="add_role_impressions_photo_large_"]'));
+        roleImpressionsPhotosLarge.forEach(roleImpressionsPhoto => {
+          roleImpressionsPhoto.value = null;
+        });
+
+        let roleImpressionsPhotosSmall = [].slice.call(document.querySelectorAll('[id^="add_role_impressions_photo_small_"]'));
+        roleImpressionsPhotosSmall.forEach(roleImpressionsPhoto => {
           roleImpressionsPhoto.value = null;
         });
       },
