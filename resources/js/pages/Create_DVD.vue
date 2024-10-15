@@ -944,28 +944,54 @@
       },
 
       // 入力された分類名をプルダウンメニューに追加
-      getGroup: function(key) {
+      getGroup(key) {
         const optionGroup = this.optionGroups.find(group => group.key === key);
         const group = this.registerForm.groupList.find(group => group.key === key);
 
         if(!optionGroup && group.name) {
-          const newGroupOption = {key: key, order: group.order, name: group.name};
-          this.optionGroups.push(newGroupOption);
-        } else {
-          optionGroup.name = group.name;
+          if(group.name.replace(/\s+/g,"")) {
+            const newGroupOption = {key: key, order: group.order, name: group.name.replace(/\s+/g,"")};
+            this.optionGroups.push(newGroupOption);
+            if(this.optionGroups.length - 1 !== this.registerForm.groupList.length) {
+              this.optionGroups.sort((a, b) => a.order - b.order);
+            }
+          }
+        } else if(optionGroup) {
+          if(!group.name.replace(/\s+/g,"")) {
+            this.optionGroups.some((group, index) => {
+              if (group.key === optionGroup.key) {
+                this.optionGroups.splice(index, 1);
+              }
+            });
+          } else {
+            optionGroup.name = group.name.replace(/\s+/g,"");
+          }
         }
       },
 
       // 入力された役名をプルダウンメニューに追加
-      getRole: function(key) {
+      getRole(key) {
         const optionRole = this.optionRoles.find(role => role.key === key);
         const player = this.registerForm.playerList.find(role => role.key === key);
 
         if(!optionRole && player.role) {
-          const newRoleOption = {key: key, order:player.order, role:player.role};
-          this.optionRoles.push(newRoleOption);
-        } else {
-          optionRole.role = player.role;
+          if(player.role.replace(/\s+/g,"")) {
+            const newRoleOption = {key: key, order: player.order, role: player.role.replace(/\s+/g,"")};
+            this.optionRoles.push(newRoleOption);
+            if(this.optionRoles.length - 1 !== this.registerForm.playerList.length) {
+              this.optionRoles.sort((a, b) => a.order - b.order);
+            }
+          }
+        } else if(optionRole) {
+          if(!player.role.replace(/\s+/g,"")) {
+            this.optionRoles.some((role, index) => {
+              if (role.key === optionRole.key) {
+                this.optionRoles.splice(index, 1);
+              }
+            });
+          } else {
+            optionRole.role = player.role.replace(/\s+/g,"");
+          }
         }
       },
 
@@ -1065,12 +1091,12 @@
         let count = 0;
         let count2 = 0;
         
-        if(!this.registerForm.title || !this.registerForm.kana) {
+        if(!this.registerForm.title.replace(/\s+/g,'') || !this.registerForm.kana.replace(/\s+/g,'')) {
           return false;
         }
 
         // タイトル（ふりがな）正規表現
-        kanas = [...this.registerForm.kana];
+        kanas = [...this.registerForm.kana.replace(/\s+/g,'')];
         kanas.forEach(a => {
           const number = this.Zenkaku2hankaku_number(a);
           if(patternNumber.test(number)){
@@ -1092,7 +1118,7 @@
           }
         });
         
-        formData.append('title', this.registerForm.title);
+        formData.append('title', this.registerForm.title.replace(/\s+/g,''));
         formData.append('kana', kana);
         formData.append('durationFrom', this.registerForm.durationFrom);
         formData.append('durationTo', this.registerForm.durationTo);
@@ -1108,26 +1134,25 @@
         };
         count = 0;
 
-        formData.append('impression', this.registerForm.impression);
-        formData.append('story', this.registerForm.story);
-        formData.append('author', this.registerForm.author ? this.registerForm.author.replace(/\s+/g,'') : '');
-        formData.append('costumer', this.registerForm.costumer ? this.registerForm.costumer.replace(/\s+/g,'') : '');
+        formData.append('impression', this.registerForm.impression.replace(/\s+/g,'') ? this.registerForm.impression : '');
+        formData.append('story', this.registerForm.story.replace(/\s+/g,'') ? this.registerForm.story : '');
+        formData.append('author', this.registerForm.author.replace(/\s+/g,'') ? this.registerForm.author.replace(/\s+/g,'') : '');
 
         for(let i = 0; i < this.registerForm.costumerList.length; i++) {
           const costumer = this.registerForm.costumerList[i];
           if(costumer.name) {
             if(costumer.name.replace(/\s+/g, '')) {
               formData.append('costumer[' + count + '][order]', count + 1);
-              formData.append('costumer[' + count + '][name]', costumer.name);
+              formData.append('costumer[' + count + '][name]', costumer.name.replace(/\s+/g, ''));
               count++;
             }
           }
         }
         count = 0;
 
-        formData.append('lyricist', this.registerForm.lyricist ? this.registerForm.lyricist.replace(/\s+/g,'') : '');
-        formData.append('choreo', this.registerForm.choreo ? this.registerForm.choreo.replace(/\s+/g,'') : '');
-        formData.append('directory', this.registerForm.director ? this.registerForm.director.replace(/\s+/g,'') : '');
+        formData.append('lyricist', this.registerForm.lyricist.replace(/\s+/g,'') ? this.registerForm.lyricist.replace(/\s+/g,'') : '');
+        formData.append('choreo', this.registerForm.choreo.replace(/\s+/g,'') ? this.registerForm.choreo.replace(/\s+/g,'') : '');
+        formData.append('directory', this.registerForm.director.replace(/\s+/g,'') ? this.registerForm.director.replace(/\s+/g,'') : '');
 
         for(let i = 0; i < this.registerForm.groupList.length; i++) {
           const group = this.registerForm.groupList[i];
@@ -1135,7 +1160,7 @@
             if(group.name.replace(/\s+/g,'')) {
               formData.append('group[' + count + '][order]', count + 1);
               formData.append('group[' + count + '][key]', group.key);
-              formData.append('group[' + count + '][name]', group.name);
+              formData.append('group[' + count + '][name]', group.name.replace(/\s+/g,''));
               count++;
             }
           }
@@ -1150,11 +1175,11 @@
               
               formData.append('role[' + count + '][order]', count + 1);
               formData.append('role[' + count + '][group_key]', player.group_key ? player.group_key : '');
-              formData.append('role[' + count + '][role]', player.role ? player.role : '');
+              formData.append('role[' + count + '][role]', player.role ? player.role.replace(/\s+/g,'') : '');
               formData.append('role[' + count + '][key]', player.key);
-              formData.append('role[' + count + '][player]', player.player);
+              formData.append('role[' + count + '][player]', player.player.replace(/\s+/g,''));
               formData.append('role[' + count + '][member]', player.member ? 1 : 0);
-              formData.append('role[' + count + '][impression]', role_impression ? role_impression.impression ? role_impression.impression : '' : '');
+              formData.append('role[' + count + '][impression]', role_impression ? role_impression.impression.replace(/\s+/g,'') ? role_impression.impression : '' : '');
               if(role_impression.photoList) {
                 for(let k = 0; k < role_impression.photoList.length; k++) {
                   const photo = role_impression.photoList[k];
@@ -1180,17 +1205,21 @@
               if(history.title) {
                 if(history.title.replace(/\s+/g, '')) {
                   history_flag = 1;
-                } else if(this.registerForm.historyList.length === 1) {
+                } else if(this.registerForm.historyList.length === 1 && history.history) {
+                  if(history.history.replace(/\s+/g,'')) {
+                    history_flag = 1;
+                  }
+                }
+              } else if(this.registerForm.historyList.length === 1 && history.history) {
+                if(history.history.replace(/\s+/g,'')) {
                   history_flag = 1;
                 }
-              } else if(this.registerForm.historyList.length === 1) {
-                history_flag = 1;
               }
 
               if(history_flag) {
                 formData.append('history[' + count + '][order]', count + 1);
-                formData.append('history[' + count + '][title]', history.title.replace(/\s+/g, '') ? history.title : '');
-                formData.append('history[' + count + '][history]', history.history);
+                formData.append('history[' + count + '][title]', history.title.replace(/\s+/g, '') ? history.title.replace(/\s+/g,'') : '');
+                formData.append('history[' + count + '][history]', history.history.replace(/\s+/g,'') ? history.history : '');
                 count++;
               }
             }
@@ -1204,8 +1233,8 @@
           if(song.title){
             if(song.title.replace(/\s+/g,'')) {
               formData.append('song[' + count + '][order]', count + 1);
-              formData.append('song[' + count + '][title]', song.title);
-              formData.append('song[' + count + '][impression]', song.impression ? song.impression.replace(/\r+/g, '') : '');
+              formData.append('song[' + count + '][title]', song.title.replace(/\s+/g,''));
+              formData.append('song[' + count + '][impression]', song.impression ? song.impression.replace(/\r+/g, '') ? song.impression : '' : '');
               
               if(song.singers.length) {
                 for(let k = 0; k < song.singers.length; k++) {
@@ -1259,7 +1288,7 @@
 
           if(other_title_flag || other_impression_flag) {
             formData.append('other[' + count + '][order]', count + 1);
-            formData.append('other[' + count + '][title]', other_title_flag ? other.title : '');
+            formData.append('other[' + count + '][title]', other_title_flag ? other.title.replace(/\s+/g,'') : '');
             formData.append('other[' + count + '][impression]', other_impression_flag ? other.impression : '');
             count++;
           }

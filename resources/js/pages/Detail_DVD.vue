@@ -1719,15 +1719,28 @@ export default {
     },
 
     // 入力された分類名をプルダウンメニューに追加
-    getGroup: function(key) {
+    getGroup(key) {
       const optionGroup = this.optionGroups.find(group => group.key === key);
       const group = this.editDVD.groups.find(group => group.key === key);
 
       if(!optionGroup && group.name) {
-        const newGroupOption = {id: null, key: key, order: group.order, name: group.name};
-        this.optionGroups.push(newGroupOption);
-      } else {
-        optionGroup.name = group.name;
+        if(group.name.replace(/\s+/g,"")) {
+          const newGroupOption = {id: null, key: key, order: group.order, name: group.name.replace(/\s+/g,"")};
+          this.optionGroups.push(newGroupOption);
+          if(this.optionGroups.length - 1 !== this.registerForm.groupList.length) {
+            this.optionGroups.sort((a, b) => a.order - b.order);
+          }
+        }
+      } else if(optionGroup) {
+        if(!group.name.replace(/\s+/g,"")) {
+          this.optionGroups.some((group, index) => {
+            if (group.key === optionGroup.key) {
+              this.optionGroups.splice(index, 1);
+            }
+          });
+        } else {
+          optionGroup.name = group.name.replace(/\s+/g,"");
+        }
       }
     },
 
@@ -1737,11 +1750,24 @@ export default {
       const player = this.editDVD.playerList.find(role => role.key === key);
 
       if(!optionRole && player.role) {
-        const newRoleOption = {id: null, key: key, order:player.order, role:player.role};
-        this.optionRoles.push(newRoleOption);
-      } else {
-        optionRole.role = player.role;
-      }
+          if(player.role.replace(/\s+/g,"")) {
+            const newRoleOption = {id: null, key: key, order: player.order, role: player.role.replace(/\s+/g,"")};
+            this.optionRoles.push(newRoleOption);
+            if(this.optionRoles.length - 1 !== this.registerForm.playerList.length) {
+              this.optionRoles.sort((a, b) => a.order - b.order);
+            }
+          }
+        } else if(optionRole) {
+          if(!player.role.replace(/\s+/g,"")) {
+            this.optionRoles.some((role, index) => {
+              if (role.key === optionRole.key) {
+                this.optionRoles.splice(index, 1);
+              }
+            });
+          } else {
+            optionRole.role = player.role.replace(/\s+/g,"");
+          }
+        }
     },
 
     // 写真プレビュー
