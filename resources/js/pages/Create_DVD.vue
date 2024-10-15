@@ -1,6 +1,6 @@
 <template>
   <div class="add">
-    <form @submit.prevent="regiterData">
+    <form @submit.prevent="regiterData" class="add-form">
       <div class="add-block">
         <div class="add-block-1">
           <!-- タイトル -->
@@ -25,7 +25,7 @@
               <div class="add-duration-conection">
                   ~
               </div>
-              <input type="date" v-model="registerForm.durationTo" class="add-duration"> 
+              <input type="date" v-model="registerForm.durationTo" class="add-duration add-duration-2"> 
             </div>
           </div>
 
@@ -156,7 +156,7 @@
 
           <!-- ゲキ×シネ監督 -->
           <div class="add-area add-author-area">
-            <div class="add-header">
+            <div class="add-header add-header-director">
               ゲキ×シネ監督
             </div>
             <input type="text" v-model="registerForm.director" class="add-author">
@@ -182,7 +182,7 @@
               </div>
 
               <div class="add-players-button-block">
-                <!-- 表 -->
+                <!-- 表<大きい用 -->
                 <div class="add-players-box">
                   <!-- ヘッダー -->
                   <div class="add-players-headerline">
@@ -224,14 +224,71 @@
                           <div class="add-players-cell add-players-line-cell add-players-cell-member">
                             <input type="checkbox" class="add-players-input add-players-member" v-model="player.member">
                           </div>
-                        </div>                        
+                        </div>
                       </template>
                     </draggable>
                       
                   </div>
-                    
-                    
                 </div>
+
+                <!-- 表<小さい用 -->
+                <draggable v-model="registerForm.playerList" group="playerList" item-key="key" tag="section" @end="endMovePlayer" class="add-players-box-small">
+                  <!-- 1セット -->
+                  <template #item="{element: player, index: index}">                        
+                    <div class="add-players-bodyblock">
+                      <!-- ヘッダー -->
+                      <div class="add-players-small-header">
+                        {{ index + 1 }}人目
+                      </div>
+
+                      <!-- 中身 -->
+                      <div class="add-players-playerline">
+                        <div class="add-players-small-set">
+                          <div class="add-players-cell add-players-header-cell">
+                            分類
+                          </div>
+                          <div class="add-players-cell add-players-line-cell">
+                            <select class="add-players-input add-players-input-text add-players-group" v-model="player.group_key">
+                              <option value="">選択</option>
+                              <option v-for="group in optionGroups" 
+                                :value="group.key" :key="group.key">
+                                {{ group.name }}
+                              </option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div class="add-players-small-set">
+                          <div class="add-players-cell add-players-header-cell">
+                            役名
+                          </div>
+                          <div class="add-players-cell add-players-line-cell">
+                            <input type="text" class="add-players-input add-players-input-text add-players-role" v-model="player.role" @input="getRole(player.key)">
+                          </div>
+                        </div>
+
+                        <div class="add-players-small-set">
+                          <div class="add-players-cell add-players-header-cell">
+                            役者
+                          </div>
+                          <div class="add-players-cell add-players-line-cell">
+                            <input type="text" class="add-players-input add-players-input-text add-players-player" v-model="player.player">
+                          </div>
+                        </div>
+
+                        <div class="add-players-small-set">
+                          <div class="add-players-cell add-players-header-cell">
+                            劇団員
+                          </div>
+                          <div class="add-players-cell add-players-line-cell">
+                            <input type="checkbox" class="add-players-input add-players-member" v-model="player.member">
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+                  </template>
+                </draggable>
 
                 <!-- フォームボタン -->
                 <div class="add-add-minus-button-area">
@@ -307,10 +364,10 @@
 
           <!-- 役感想 -->
           <div class="add-area add-role-impressions-area">
-            <!-- 表 -->
+            <!-- 表<大きい用 -->
             <div class="add-role-impressions-box">
               <!-- ヘッダー -->
-            <div class="add-role-impressions-headerline">
+              <div class="add-role-impressions-headerline">
                 <div class="add-roles-impressions-cell add-role-impressions-header-cell add-role-impressions-cell-role">
                   役名
                 </div>
@@ -360,14 +417,14 @@
                     
                       <!-- フォームボタン -->
                       <div class="add-add-minus-button-area add-add-minus-button-area-small">
-                        <div ref="add_minus_button_area_role_impression_photos_form" class="add-minus-button-area add-minus-button-area-small" style="visibility: hidden">
+                        <div ref="add_minus_button_area_role_impression_photos_form_large" class="add-minus-button-area add-minus-button-area-small" style="visibility: hidden">
                           <button type="button" class="add-add-button add-add-button-small" @click="minusRoleImpressionPhotoForm(roleImpressionIndex)">
                             <div class="add-add-button-icon add-add-button-icon-small">
                               <i class="fa-solid fa-minus"></i>
                             </div>
                           </button>
                         </div>
-                        <div ref="add_add_button_area_role_impression_photos_form" class="add-add-button-area add-minus-button-area-small">
+                        <div ref="add_add_button_area_role_impression_photos_form_large" class="add-add-button-area add-minus-button-area-small">
                           <button type="button" class="add-add-button add-add-button-small" @click="plusRoleImpressionPhotoForm(roleImpressionIndex)">
                             <div class="add-add-button-icon add-add-button-icon-small">
                               <i class="fa-solid fa-plus"></i>
@@ -378,10 +435,87 @@
                     </div>
                   </div>
                 </section>
-                
               </div>
-                    
             </div>
+
+            <!-- 表<小さい用 -->
+            <section v-for="(roleImpression, roleImpressionIndex) in registerForm.roleImpressionList" :key="roleImpressionIndex" class="add-role-impressions-box-small">
+              <!-- 1セット -->
+              <div id="add_role_impressions_bodyblock" class="add-role-impression-bodyblock">
+                <div class="add-role-impressions-small-header">
+                  {{ roleImpressionIndex + 1 }}人目
+                </div>
+                <!-- 中身 -->
+                <div class="add-role-impressions-bodyline">
+                  <div class="add-role-impressions-small-set">
+                    <div class="add-roles-impressions-cell add-role-impressions-header-cell">
+                      役名
+                    </div>
+                    <div class="add-roles-impressions-cell add-role-impressions-body-cell">
+                      <select class="add-role-impressions-input add-role-impressions-role" v-model="roleImpression.role_key" @change="chooseRole(roleImpressionIndex)">
+                        <option value="">選択</option>
+                        <option v-for="role in optionRoles" 
+                          :value="role.key" :key="role.key">
+                          {{ role.role }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="add-role-impressions-small-set add-role-impressions-impression-cell">
+                    <div class="add-roles-impressions-cell add-role-impressions-header-cell add-role-impressions-impression-cell">
+                      感想
+                    </div>
+                    <div class="add-roles-impressions-cell add-role-impressions-body-cell add-role-impressions-impression-cell">
+                      <textarea class="add-role-impressions-input add-role-impressions-impression" v-model="roleImpression.impression" placeholder="どうだった？"></textarea>  
+                    </div>
+                  </div>                    
+                  
+                  <div class="add-role-impressions-small-set add-role-impressions-photos-cell">
+                    <div class="add-roles-impressions-cell add-role-impressions-header-cell add-role-impressions-photos-cell">
+                      写真
+                    </div>
+                    <div class="add-roles-impressions-cell add-role-impressions-body-cell">
+                      <draggable v-model="roleImpression.photoList" group="roleImpressionPhotoList" item-key="key" tag="section" class="add-role-impression-photos-block">
+                        <!-- 1セット -->
+                        <template #item="{element : photo, index: roleImpressionPhotoIndex}">
+                        <div class="add-photo-block">
+                            <label :for="'add_role_impressions_photo_' + roleImpressionIndex + '_' + roleImpressionPhotoIndex" class="add-role-impressions-input add-role-impressions-photo-button">選択</label>
+                            <input type="file" :id="'add_role_impressions_photo_' + roleImpressionIndex + '_' + roleImpressionPhotoIndex" class="add-role-impressions-photo" @change="previewFileRoleImpression(roleImpressionIndex, roleImpressionPhotoIndex, $event)">
+                            <div class="add-role-impressions-photo-area">
+                              <output v-if="photo.preview" class="add-role-impressions-photo-output">
+                                <button type="button" class="add-role-impressions-photo-resetbutton" @click="resetPhotoRoleImpression(roleImpressionIndex, roleImpressionPhotoIndex)"><i class="fa-solid fa-xmark"></i></button>
+                                <img :src="photo.preview" alt="" class="add-role-impressions-photo-preview" >
+                              </output>
+                              
+                              <div v-if="errors.roleImpressions[roleImpressionIndex].photos[roleImpressionPhotoIndex]" class="add-error-message-role-impressions-photo">{{ errors.roleImpressions[roleImpressionIndex].photos[roleImpressionPhotoIndex] }}</div>
+                            </div>
+                          </div>
+                        </template>
+                      </draggable>
+                    
+                      <!-- フォームボタン -->
+                      <div class="add-add-minus-button-area add-add-minus-button-area-small">
+                        <div ref="add_minus_button_area_role_impression_photos_form_small" class="add-minus-button-area add-minus-button-area-small" style="visibility: hidden">
+                          <button type="button" class="add-add-button add-add-button-small" @click="minusRoleImpressionPhotoForm(roleImpressionIndex)">
+                            <div class="add-add-button-icon add-add-button-icon-small">
+                              <i class="fa-solid fa-minus"></i>
+                            </div>
+                          </button>
+                        </div>
+                        <div ref="add_add_button_area_role_impression_photos_form_small" class="add-add-button-area add-minus-button-area-small">
+                          <button type="button" class="add-add-button add-add-button-small" @click="plusRoleImpressionPhotoForm(roleImpressionIndex)">
+                            <div class="add-add-button-icon add-add-button-icon-small">
+                              <i class="fa-solid fa-plus"></i>
+                            </div>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
 
             <!-- フォームボタン -->
             <div class="add-add-minus-button-area">
@@ -409,7 +543,7 @@
             </div>
 
             <div class="add-others-button-block">
-              <!-- 表 -->
+              <!-- 表<大きい用 -->
               <div class="add-others-box">
                 <!-- ヘッダー -->
                 <div class="add-others-headerline">
@@ -439,6 +573,40 @@
                 </div>
               </div>
 
+              <!-- 表<小さい用 -->
+              <draggable v-model="registerForm.historyList" group="historyList" item-key="key" tag="section" class="add-others-box-small">                    
+                <template #item="{element: history, index: index}">
+                  <!-- 1セット -->
+                  <div class="add-others-bodyblock">
+                    <!-- ヘッダー -->
+                    <div class="add-others-small-header">
+                      {{ index + 1 }}人目
+                    </div>
+
+                    <!-- 中身 -->
+                    <div class="add-others-bodyline">
+                      <div class="add-others-small-set">
+                        <div class="add-others-cell add-others-header-cell">
+                          題名
+                        </div>
+                        <div class="add-others-cell add-others-body-cell">
+                          <input type="text" class="add-others-input add-others-title" v-model="history.title">
+                        </div>
+                      </div>
+
+                      <div class="add-others-small-set add-others-impression-cell">
+                        <div class="add-others-cell add-others-header-cell add-others-impression-cell">
+                          歴史
+                        </div>
+                        <div class="add-others-cell add-others-body-cell add-others-impression-cell">
+                          <textarea class="add-others-input add-others-impression" placeholder="本当は？" v-model="history.history"></textarea>
+                        </div>
+                      </div>
+                    </div>
+                  </div>                      
+                </template>
+              </draggable>
+
               <!-- フォームボタン -->
               <div class="add-add-minus-button-area">
                 <div ref="add_minus_button_area_histories_form" class="add-minus-button-area" style="visibility: hidden">
@@ -466,7 +634,7 @@
             </div>
 
             <div class="add-others-button-block">
-              <!-- 表 -->
+              <!-- 表<大きい用 -->
               <div class="add-others-box">
                 <!-- ヘッダー -->
                 <div class="add-others-headerline">
@@ -563,6 +731,107 @@
                 </div>
               </div>
 
+              <!-- 表<小さい用 -->
+              <draggable v-model="registerForm.songList" group="songList" item-key="key" tag="section" @end="endMoveSong" class="add-others-box-small">
+                <!-- 1セット -->
+                <template #item="{element : song, index: songIndex}">
+                  <div class="add-others-bodyblock">
+                    <div class="add-others-small-header">
+                      {{ songIndex + 1 }}つ目
+                    </div>
+
+                    <!-- 中身 -->
+                    <div class="add-others-bodyline">
+                      <div class="add-others-small-set">
+                        <div class="add-others-cell add-others-header-cell add-others-cell-title">
+                          題名
+                        </div>
+                        <div class="add-others-cell add-others-body-cell add-others-cell-title">
+                          <input type="text" class="add-others-input add-others-title" v-model="song.title">
+                        </div>
+                      </div>
+
+                      <div class="add-others-small-set add-others-singers-cell">
+                        <div class="add-others-cell add-others-header-cell add-songs-cell-singer">
+                          歌い手
+                        </div>
+                        <div class="add-others-cell add-others-body-cell add-songs-cell-singer add-singers-body-cell-singer">
+                          <div class="add-song-singer-area">
+                            <draggable v-model="song.singers" group="songList_singers" item-key="key" tag="section">
+                              <template #item="{element : singer, index: singIndex}">
+                                <div class="add-song-singers-area">
+                                  <div class="add-song-singer-type-area">
+                                    <div class="add-song-singer-type-box">
+                                      <label :for="'add_song_role_' + songIndex + '_' + singIndex">キャスト</label>
+                                      <input :id="'add_song_role_' + songIndex + '_' + singIndex" type="radio" class="add-song-singer-type-radio" value="role" v-model="singer.type">
+                                    </div>
+                                    <div class="add-song-singer-type-box">
+                                      <label :for="'add_song_group_' + songIndex + '_' + singIndex">分類</label>
+                                      <input :id="'add_song_group_' + songIndex + '_' + singIndex" type="radio" class="add-song-singer-type-radio" value="group" v-model="singer.type">
+                                    </div>
+                                    <div class="add-song-singer-type-box">
+                                      <label :for="'add_song_input_' + songIndex + '_' + singIndex">入力</label>
+                                      <input :id="'add_song_input_' + songIndex + '_' + singIndex" type="radio" class="add-song-singer-type-radio" value="name" v-model="singer.type">
+                                    </div>
+                                  </div>
+
+                                  <div class="add-song-singer-select-area">
+                                    <select class="add-song-singer-select-input" v-if="singer.type === 'role'" v-model="singer.role_key">
+                                      <option value="">選択</option>
+                                      <option v-for="role in optionRoles" 
+                                        :value="role.key" :key="role.key">
+                                        {{ role.role }}
+                                      </option>
+                                    </select>
+
+                                    <select class="add-song-singer-select-input" v-if="singer.type === 'group'" v-model="singer.group_key">
+                                      <option value="">選択</option>
+                                      <option v-for="group in optionGroups" 
+                                        :value="group.key" :key="group.key">
+                                        {{ group.name }}
+                                      </option>
+                                    </select>
+
+                                    <input type="text" class="add-song-singer-select-input" v-if="singer.type === 'name'" v-model="singer.name">
+                                  </div>
+                                </div>
+                              </template>
+                            </draggable>
+
+                            <!-- フォームボタン -->
+                            <div class="add-add-minus-button-area add-add-minus-button-area-small">
+                              <div :ref="'add_minus_button_area_singers_form_' + songIndex" class="add-minus-button-area add-minus-button-area-small" style="visibility: hidden">
+                                <button type="button" class="add-add-button add-add-button-small" @click="minusSingerForm(songIndex)">
+                                  <div class="add-add-button-icon add-add-button-icon-small">
+                                    <i class="fa-solid fa-minus"></i>
+                                  </div>
+                                </button>
+                              </div>
+                              <div :ref="'add_add_button_area_singers_form_' + songIndex" class="add-add-button-area add-minus-button-area-small">
+                                <button type="button" class="add-add-button add-add-button-small" @click="plusSingerForm(songIndex)">
+                                  <div class="add-add-button-icon add-add-button-icon-small">
+                                    <i class="fa-solid fa-plus"></i>
+                                  </div>
+                                </button>
+                              </div>
+                            </div>
+                          </div>  
+                        </div>
+                      </div>
+
+                      <div class="add-others-small-set add-others-impression-cell">
+                        <div class="add-others-cell add-others-header-cell add-songs-cell-impression">
+                          感想
+                        </div>
+                        <div class="add-others-cell add-others-body-cell add-songs-cell-impression">
+                          <textarea class="add-others-input add-others-impression" placeholder="どうだった？" v-model="song.impression"></textarea>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+              </draggable>
+
               <!-- フォームボタン -->
               <div class="add-add-minus-button-area">
                 <div ref="add_minus_button_area_songs_form" class="add-minus-button-area" style="visibility: hidden">
@@ -590,7 +859,7 @@
             </div>
 
             <div class="add-others-button-block">
-              <!-- 表 -->
+              <!-- 表<大きい用 -->
               <div class="add-others-box">
                 <!-- ヘッダー -->
                 <div class="add-others-headerline">
@@ -619,6 +888,39 @@
                   </draggable>
                 </div>
               </div>
+
+              <!-- 表<小さい用 -->
+              <draggable v-model="registerForm.otherList" group="otherList" item-key="key" tag="section" class="add-others-box-small">
+                <!-- 1セット -->
+                <template #item="{element: other, index: index}">
+                  <div class="add-others-bodyblock">
+                    <div class="add-others-small-header">
+                      {{ index + 1 }}つ目
+                    </div>
+
+                    <!-- 中身 -->
+                    <div class="add-others-bodyline">
+                      <div class="add-others-small-set">
+                        <div class="add-others-cell add-others-header-cell add-others-cell-title">
+                          題目
+                        </div>
+                        <div class="add-others-cell add-others-body-cell add-others-cell-title">
+                          <input type="text" class="add-others-input add-others-title" v-model="other.title">
+                        </div>
+                      </div>
+                      
+                      <div class="add-others-small-set add-others-impression-cell">
+                        <div class="add-others-cell add-others-header-cell add-others-cell-impression">
+                          感想
+                        </div>
+                        <div class="add-others-cell add-others-body-cell add-others-cell-impression">
+                          <textarea class="add-others-input add-others-impression" placeholder="どうだった？" v-model="other.impression"></textarea>
+                        </div>
+                      </div>                          
+                    </div>
+                  </div>
+                </template>
+              </draggable>
 
               <!-- フォームボタン -->
               <div class="add-add-minus-button-area">
@@ -1725,9 +2027,11 @@
           this.errors.roleImpressions[roleImpressionIndex].photos.push(null);          
 
           if(this.registerForm.roleImpressionList[roleImpressionIndex].photoList.length === 2) {
-            this.$refs.add_minus_button_area_role_impression_photos_form[roleImpressionIndex].style.visibility = 'visible';
+            this.$refs.add_minus_button_area_role_impression_photos_form_large[roleImpressionIndex].style.visibility = 'visible';
+            this.$refs.add_minus_button_area_role_impression_photos_form_small[roleImpressionIndex].style.visibility = 'visible';
           } else if (this.registerForm.roleImpressionList[roleImpressionIndex].photoList.length === 5) {
-            this.$refs.add_add_button_area_role_impression_photos_form[roleImpressionIndex].style.visibility = 'hidden';
+            this.$refs.add_add_button_area_role_impression_photos_form_large[roleImpressionIndex].style.visibility = 'hidden';
+            this.$refs.add_add_button_area_role_impression_photos_form_small[roleImpressionIndex].style.visibility = 'hidden';
           }
         }
       },
@@ -1738,9 +2042,11 @@
           this.errors.roleImpressions[roleImpressionIndex].photos.pop();
 
           if(this.registerForm.roleImpressionList[roleImpressionIndex].photoList.length === 1){
-            this.$refs.add_minus_button_area_role_impression_photos_form[roleImpressionIndex].style.visibility = 'hidden';
+            this.$refs.add_minus_button_area_role_impression_photos_form_large[roleImpressionIndex].style.visibility = 'hidden';
+            this.$refs.add_minus_button_area_role_impression_photos_form_small[roleImpressionIndex].style.visibility = 'hidden';
           } else if (this.registerForm.roleImpressionList[roleImpressionIndex].photoList.length === 4) {
-            this.$refs.add_add_button_area_role_impression_photos_form[roleImpressionIndex].style.visibility = 'visible';
+            this.$refs.add_add_button_area_role_impression_photos_form_large[roleImpressionIndex].style.visibility = 'visible';
+            this.$refs.add_add_button_area_role_impression_photos_form_small[roleImpressionIndex].style.visibility = 'visible';
           }
         }
       },

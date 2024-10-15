@@ -269,7 +269,7 @@
 
     <!-- 編集 -->
     <div v-show="tab === 2" class="detail-edit-area">
-      <form @submit.prevent="confirmEditData">
+      <form @submit.prevent="confirmEditData" class="add-form">
         <div class="add-block">
           <div class="add-block-1">
             <!-- タイトル -->
