@@ -131,7 +131,7 @@ class DVDController extends BaseController
     {
         $DVD = DVD_list::with(['rents' => function($query) {
             $query->where('flag', 1)->max('start_date');
-        }])->get(['id', 'title', 'duration_from']);
+        }])->get(['id', 'title', 'duration_from', 'adaptation', 'own']);
         // $DVD = DVD_list::with(['rents:name,flag,start_date' => function($query) {
         //     $query->where('flag', 1);
         // }])->get();
@@ -166,8 +166,10 @@ class DVDController extends BaseController
         $songs = !empty($request->song) ? $request->song : null;
         $others = !empty($request->other) ? $request->other : null;
         $photos = !empty($request->photo) ? $request->photo : null;
-        $format = $request->format;
+        $adaptation = $request->adaptation;
+        $own = $request->own;
         $official = $request->official;
+        $format = $request->format;
         $special = $request->special;
         $url_DVD = !empty($request->url_DVD) ? $request->url_DVD : null;
         $url_movie = !empty($request->url_movie) ? $request->url_movie : null;
@@ -178,7 +180,7 @@ class DVDController extends BaseController
         DB::beginTransaction();
 
         try {
-            $DVD = DVD_list::create(['title' => $request->title, 'kana' => $request->kana, 'duration_from' => $durationFrom, 'duration_to' => $durationTo, 'impression' => $impression, 'story' => $story, 'author' => $author, 'lyricist' => $lyricist, 'choreo' => $choreo, 'direcor' => $director, 'format' => $format, 'official' => $official, 'special' => $special, 'url_DVD' => $url_DVD, 'url_movie' => $url_movie, 'url_youtube' => $url_youtube, 'category' => $category]);
+            $DVD = DVD_list::create(['title' => $request->title, 'kana' => $request->kana, 'duration_from' => $durationFrom, 'duration_to' => $durationTo, 'impression' => $impression, 'story' => $story, 'author' => $author, 'lyricist' => $lyricist, 'choreo' => $choreo, 'direcor' => $director, 'adaptation' => $adaptation, 'own' => $own, 'official' => $official, 'format' => $format, 'special' => $special, 'url_DVD' => $url_DVD, 'url_movie' => $url_movie, 'url_youtube' => $url_youtube, 'category' => $category]);
             
             if($locations){
                 foreach($locations as $location) {
@@ -318,8 +320,10 @@ class DVDController extends BaseController
         $songs = !empty($request->song) ? $request->song : null;
         $others = !empty($request->other) ? $request->other : null;
         $photos = !empty($request->photo) ? $request->photo : null;
-        $format = (int)$request->format;
+        $adaptation = $request->adaptation;
+        $own = $request->own;
         $official = $request->official;
+        $format = (int)$request->format;
         $special = $request->special;
         $url_DVD = !empty($request->url_DVD) ? $request->url_DVD : null;
         $url_movie = !empty($request->url_movie) ? $request->url_movie : null;
@@ -331,7 +335,7 @@ class DVDController extends BaseController
         DB::beginTransaction();
 
         try {
-            DVD_list::where('id',$id)->update(['title' => $request->title, 'kana' => $request->kana, 'duration_from' => $durationFrom, 'duration_to' => $durationTo, 'impression' => $impression, 'story' => $story, 'author' => $author, 'lyricist' => $lyricist, 'choreo' => $choreo, 'director' => $director, 'format' => $format, 'official' => $official, 'special' => $special, 'url_DVD' => $url_DVD, 'url_movie' => $url_movie, 'url_youtube' => $url_youtube, 'category' => $category]);
+            DVD_list::where('id',$id)->update(['title' => $request->title, 'kana' => $request->kana, 'duration_from' => $durationFrom, 'duration_to' => $durationTo, 'impression' => $impression, 'story' => $story, 'author' => $author, 'lyricist' => $lyricist, 'choreo' => $choreo, 'director' => $director, 'adaptation' => $adaptation, 'own' => $own, 'official' => $official, 'format' => $format, 'special' => $special, 'url_DVD' => $url_DVD, 'url_movie' => $url_movie, 'url_youtube' => $url_youtube, 'category' => $category]);
             
             $delete_locations = Location::where('DVD_id', $id)->get()->pluck('id')->toArray();
             $not_delete_locations = array();

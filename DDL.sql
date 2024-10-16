@@ -194,3 +194,9 @@ CREATE TABLE SINGER (
     INDEX `FK_singer_role_group_id` (`role_group_id`) USING BTREE,
 	CONSTRAINT `FK_singer_role_group_id` FOREIGN KEY (`role_group_id`) REFERENCES `role_group` (`id`) ON UPDATE CASCADE ON DELETE SET NULL
 );
+
+
+
+ALTER TABLE DVD_LIST ADD adaptation TINYINT UNSIGNED AFTER history, ADD own TINYINT UNSIGNED AFTER adaptation;
+UPDATE DVD_LIST SET adaptation = official;
+UPDATE DVD_LIST SET own = 1 WHERE own IS NULL;

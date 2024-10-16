@@ -2217,7 +2217,7 @@
 }
 
 /* 検索画面 */
-@media only screen and (min-height: 790px) {
+@media only screen and (min-height: 830px) {
   /* 検索 */
   .overlay-custom {
     align-items: center;  

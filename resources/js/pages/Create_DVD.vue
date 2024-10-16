@@ -398,7 +398,7 @@
                     <div class="add-roles-impressions-cell add-role-impressions-body-cell add-role-impressions-cell-photo">
                      <draggable v-model="roleImpression.photoList" group="roleImpressionPhotoList" item-key="key" tag="section" class="add-role-impression-photos-block">
                          <!-- 1セット -->
-                        <template #item="{element : photo, index: roleImpressionPhotoIndex}">
+                        <template #item="{element: photo, index: roleImpressionPhotoIndex}">
                          <div class="add-photo-block">
                             <label :for="'add_role_impressions_photo_large_' + roleImpressionIndex + '_' + roleImpressionPhotoIndex" class="add-role-impressions-input add-role-impressions-photo-button">選択</label>
                             <input type="file" :id="'add_role_impressions_photo_large_' + roleImpressionIndex + '_' + roleImpressionPhotoIndex" class="add-role-impressions-photo" @change="previewFileRoleImpression(roleImpressionIndex, roleImpressionPhotoIndex, $event)">
@@ -477,7 +477,7 @@
                     <div class="add-roles-impressions-cell add-role-impressions-body-cell">
                       <draggable v-model="roleImpression.photoList" group="roleImpressionPhotoList" item-key="key" tag="section" class="add-role-impression-photos-block">
                         <!-- 1セット -->
-                        <template #item="{element : photo, index: roleImpressionPhotoIndex}">
+                        <template #item="{element: photo, index: roleImpressionPhotoIndex}">
                         <div class="add-photo-block">
                             <label :for="'add_role_impressions_photo_small_' + roleImpressionIndex + '_' + roleImpressionPhotoIndex" class="add-role-impressions-input add-role-impressions-photo-button">選択</label>
                             <input type="file" :id="'add_role_impressions_photo_small_' + roleImpressionIndex + '_' + roleImpressionPhotoIndex" class="add-role-impressions-photo" @change="previewFileRoleImpression(roleImpressionIndex, roleImpressionPhotoIndex, $event)">
@@ -993,32 +993,47 @@
 
         <div class="add-block-2">
           <div class="add-special-area">
+            <label for="add_adaptation" class="add-special-header add-official-header">
+              円盤化
+            </label>
+            <input id="add_adaptation" type="checkbox" v-model="registerForm.adaptation" class="add-special-input add-special" checked>
+          </div>
+
+          <div class="add-special-area">
+            <label for="add_own" class="add-special-header add-official-header">
+              所有
+            </label>
+            <input id="add_own" type="checkbox" v-model="registerForm.own" class="add-special-input add-special" checked>
+          </div>
+
+          <div v-if="registerForm.adaptation" class="add-special-area">
+            <label for="add_official" class="add-special-header">
+              公式
+            </label>
+            <input id="add_official" type="checkbox" v-model="registerForm.official" class="add-special-input add-special" checked>
+          </div>
+
+          <div v-if="registerForm.adaptation && registerForm.official" class="add-special-area">
             <div class="add-special-area">
               <label for="add_format_DVD" class="add-special-header add-official-header">
                 DVD
               </label>
-              <input id="add_format_DVD" type="radio" v-model="registerForm.format" value=1 class="add-special-input add-special" checked>
+              <input id="add_format_DVD" type="radio" @click="formatDeselection($event, 1)" v-model="registerForm.format" value=1 class="add-special-input add-special">
             </div>
 
             <div class="add-special-area">
               <label for="add_format_Blu" class="add-special-header add-official-header">
                 Blu-ray
               </label>
-              <input id="add_format_Blu" type="radio" v-model="registerForm.format" value=2 class="add-special-input add-special">
+              <input id="add_format_Blu" type="radio" @click="formatDeselection($event, 2)" v-model="registerForm.format" value=2 class="add-special-input add-special">
             </div>
           </div>
-          <div class="add-special-area">
-            <label for="add_official" class="add-special-header add-official-header">
-              公式
-            </label>
-            <input id="add_official" type="checkbox" v-model="registerForm.official" class="add-special-input add-special" checked>
-          </div>
 
-          <div class="add-special-area">
+          <div v-if="registerForm.adaptation && registerForm.official" class="add-special-area">
             <label for="add_special" class="add-special-header">
               特典
             </label>
-            <input id="add_special" type="checkbox" v-model="registerForm.special" class="add-special-input add-special">
+            <input id="add_special" type="checkbox" v-model="registerForm.special" class="add-special-input add-special" checked>
           </div>
 
           <div class="add-special-area">
@@ -1109,8 +1124,10 @@
           songList: [{title: null, singers: [{type: 'role', role_key: '', group_key: '', name: null}], impression: null}],
           otherList: [{title: null, impression: null}],
           photoList: [{preview: null, photo: ''}],
-          format: 1,
+          adaptation: true,
+          own: true,
           official: true,
+          format: 2,
           special: false,
           url_DVD: '',
           url_movie: '',
@@ -1293,6 +1310,17 @@
           } else {
             optionRole.role = player.role.replace(/\s+/g,"");
           }
+        }
+      },
+
+      // フォーマットラジオボタン
+      formatDeselection(event, select) {
+        if(this.registerForm.format == select) {
+          this.registerForm.format = 0;
+          event.target.checked = false;
+        } else {
+          this.registerForm.format = select;
+          event.target.checked = true;
         }
       },
 
@@ -1607,10 +1635,12 @@
           }
         }
         count = 0;
-
-        formData.append('format', this.registerForm.format == 1 ? 1 : 2);
-        formData.append('official', this.registerForm.official ? 1 : 0);
-        formData.append('special', this.registerForm.special ? 1 : 0);
+        
+        formData.append('adaptation', this.registerForm.adaptation ? 1 : 0);
+        formData.append('own', this.registerForm.own ? 1 : 0);
+        formData.append('official', this.registerForm.adaptation ? this.registerForm.official ? 1 : 0 : 0);
+        formData.append('format', this.registerForm.adaptation && this.registerForm.official ? this.registerForm.format ? this.registerForm.format == 1 ? 1 : 2 : 0 : 0);
+        formData.append('special', this.registerForm.adaptation && this.registerForm.official ? this.registerForm.special ? 1 : 0 : 0);
         formData.append('url_DVD', this.registerForm.url_DVD);
         formData.append('url_movie', this.registerForm.url_movie);
         formData.append('url_youtube', this.registerForm.url_youtube);
@@ -1721,14 +1751,16 @@
           director: '',
           playerList : [{key: this.getUniqueStr(), order: 0, group_key: '', role: null, player: null, member: false}],
           groupList : [{key: this.getUniqueStr(), order: 0, name: null}],
-          roleImpressionList: [{order: 0, role_key: "", impression: null, photoList:[{preview: null, photo: null}] }],
+          roleImpressionList: [{order: 0, role_key: '', impression: null, photoList:[{preview: null, photo: null}] }],
           historyList: [{title: null, history: null}],
           songList: [{title: null, singers: [{type: 'role', role_key: '', group_key: '', name: null}], impression: null}],
           otherList: [{title: null, impression: null}],
           preview: null,
           photoList: [{preview: null, photo: ''}],
-          format: 1,
+          adaptation: true,
+          own: true,
           official: true,
+          format: 2,
           special: false,
           url_DVD: '',
           url_movie: '',
@@ -1742,10 +1774,9 @@
         this.optionRoles = []; // 役名
         // エラー
         this.errors = {
-          photo: {
-            roleImpression: null,
-            pres: null
-          },
+          roleImpressions: [
+            {photos: [null]}
+          ],
           photos: [null],
           error: null,
         };
