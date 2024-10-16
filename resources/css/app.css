@@ -1543,6 +1543,9 @@
   width: 15%;
   font-size: 0.8rem;
 }
+.detail-show-header-director {
+  min-width: 100px;
+}
 .detail-show-duration-area {
   display: flex;
   flex-direction: row;
@@ -1615,8 +1618,14 @@
   width: 100%;
   gap: 0.5rem;
 }
+.detail-show-role-area-column-1 {
+  flex-direction: column;
+}
 .detail-show-role-role {
   min-width: 30%;
+}
+.detail-show-role-content-column-2 {
+  margin-left: auto;
 }
 .detail-show-impression-area {
   display: flex;
@@ -2208,7 +2217,7 @@
 }
 
 /* 検索画面 */
-@media only screen and (min-height: 790px) {
+@media only screen and (min-height: 830px) {
   /* 検索 */
   .overlay-custom {
     align-items: center;  

@@ -40,6 +40,18 @@
                 <label for="search_rent" class="search-refine-rent-label">貸出可能のみ</label>
               </div>
 
+              <!-- 映像化 -->
+              <div class="search-refine-rent-area">
+                <input type="checkbox" id="search_adaptation" v-model="searchContentDVD.refine.adaptation" class="search-refine-rent-check">
+                <label for="search_adaptation" class="search-refine-rent-label">映像化のみ</label>
+              </div>
+
+              <!-- 所有 -->
+              <div class="search-refine-rent-area">
+                <input type="checkbox" id="search_own" v-model="searchContentDVD.refine.own" class="search-refine-rent-check">
+                <label for="search_own" class="search-refine-rent-label">所有</label>
+              </div>
+
               <!-- DVD -->
               <div class="search-refine-rent-area">
                 <input type="checkbox" id="search_format" v-model="searchContentDVD.refine.format" class="search-refine-rent-check">
@@ -265,6 +277,8 @@
             sort: "duration",
             refine: {
               rent: false,
+              adaptation: false,
+              own: false,
               format: false,
               title: null,
               category: null,
@@ -471,7 +485,7 @@
             }
           }
 
-          this.$emit('close', this.searchContentDVD.sort, this.searchContentDVD.refine.mode, this.searchContentDVD.refine.rent, this.searchContentDVD.refine.format, this.searchContentDVD.refine.title, this.searchContentDVD.refine.category, duration, this.searchContentDVD.refine.theater, this.searchContentDVD.refine.author, this.searchContentDVD.refine.costumer, this.searchContentDVD.refine.lyricist, this.searchContentDVD.refine.choreo, this.searchContentDVD.refine.director, this.searchContentDVD.refine.players, this.searchContentDVD.refine.roles);
+          this.$emit('close', this.searchContentDVD.sort, this.searchContentDVD.refine.mode, this.searchContentDVD.refine.rent, this.searchContentDVD.refine.adaptation, this.searchContentDVD.refine.own, this.searchContentDVD.refine.format, this.searchContentDVD.refine.title, this.searchContentDVD.refine.category, duration, this.searchContentDVD.refine.theater, this.searchContentDVD.refine.author, this.searchContentDVD.refine.costumer, this.searchContentDVD.refine.lyricist, this.searchContentDVD.refine.choreo, this.searchContentDVD.refine.director, this.searchContentDVD.refine.players, this.searchContentDVD.refine.roles);
         },
 
         // リセット

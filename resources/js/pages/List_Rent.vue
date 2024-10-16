@@ -133,7 +133,14 @@ export default {
         return false;
       }
 
-      this.DVDs = response.data; // オリジナルデータ
+      this.DVDs = response.data;
+      this.DVDs.forEach(DVD => {
+        console.log(DVD);
+        if(DVD.own && DVD.adaptation) {
+          console.log(DVD);
+        }
+      });
+      this.DVDs = this.DVDs.filter(DVD => DVD.own && DVD.adaptation ? DVD : null); // オリジナルデータ
       [...Array(this.DVDs.length)].map(() => this.rentData.check.push(false));
       this.showDVDs = JSON.parse(JSON.stringify(this.DVDs));
 

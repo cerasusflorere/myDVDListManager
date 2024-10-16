@@ -68,7 +68,8 @@
             <div v-else class="list-list-table-cell list-list-table-bodycell list-list-table-author-cell"></div>
             <!-- 貸出 -->
             <div class="list-list-table-cell list-list-table-bodycell list-list-table-rent-cell">
-              <span v-if="!DVD.rents.length && DVD.official" class="list-list-table-rent green"><i class="far fa-circle"></i></span>
+              <span v-if="!DVD.rents.length && DVD.own && DVD.adaptation" class="list-list-table-rent green"><i class="far fa-circle"></i></span>
+              <span v-else-if="!DVD.own || (!DVD.adaptation && !DVD.official)" class="list-list-table-rent">-</span>
             </div>
           </div> 
         </div>      
@@ -129,6 +130,9 @@
               <div v-if="!DVD.rents.length" class="list-grid-rent green">
                 <i class="far fa-circle"></i>
               </div>
+              <div v-else-if="!DVD.own || (!DVD.adaptation && !DVD.official)" class="list-grid-rent">
+                -
+              </div>
             </div>
           </div>
         </div>
@@ -164,6 +168,8 @@ import { fa } from 'vuetify/locale';
           sort: null, // null:reset
           mode: 0,
           rent: false,
+          adaptation: false,
+          own: false,
           format: false,
           title: null,
           category: null,
@@ -269,6 +275,8 @@ import { fa } from 'vuetify/locale';
             sort: null,
             mode: 1,
             rent: false,
+            adaptation: false,
+            own: false,
             format: false,
             title: null,
             category: null,
@@ -380,11 +388,13 @@ import { fa } from 'vuetify/locale';
       },
       // 検索カスタムのモーダル非表示
       // 検索/並び替え
-      async closeModal_searchDVD(sort, mode, rent, format, title, category, duration, theater, author, costumer, lyricist, choreo, director, players, roles) {
+      async closeModal_searchDVD(sort, mode, rent, adaptation, own, format, title, category, duration, theater, author, costumer, lyricist, choreo, director, players, roles) {
         this.showContent_search = false;
         this.custom.sort = sort;
-        if(rent || format || title || category || theater || author || costumer || lyricist || choreo || director || players || roles) {
+        if(rent || adaptation || own || format || title || category || theater || author || costumer || lyricist || choreo || director || players || roles) {
           let arrayFromRent = JSON.parse(JSON.stringify(this.DVDs));
+          let arrayFromAdaptation = JSON.parse(JSON.stringify(this.DVDs));
+          let arrayFromOwn = JSON.parse(JSON.stringify(this.DVDs));
           let arrayFromFormat = JSON.parse(JSON.stringify(this.DVDs));
           let arrayFromTitle = new Array();
           let arrayFromCategory = new Array();
@@ -398,6 +408,8 @@ import { fa } from 'vuetify/locale';
           let arrayFromPlayers = new Array();
           let arrayFromCharacters = new Array();
           let rentFlag = 0;
+          let adaptationFlag = 0;
+          let ownFlag = 0;
           let formatFlag = 0;
           let titleFlag = 0;
           let categoryFlag = 0;
@@ -426,9 +438,25 @@ import { fa } from 'vuetify/locale';
 
           if(rent) {
             this.custom.rent = true;
-            arrayFromRent = DVDs.filter(DVD => DVD.rents.length === 0 && DVD.official);
+            arrayFromRent = DVDs.filter(DVD => DVD.rents.length === 0 && DVD.own && DVD.adaptation);
             if(!arrayFromRent.length) {
               rentFlag = 1;
+            }
+          }
+
+          if(adaptation) {
+            this.custom.adaptation = true;
+            arrayFromAdaptation = DVDs.filter(DVD => DVD.adaptation === 1);
+            if(!arrayFromAdaptation.length) {
+              adaptationFlag = 1;
+            }
+          }
+
+          if(own) {
+            this.custom.own = true;
+            arrayFromOwn = DVDs.filter(DVD => DVD.own === 1);
+            if(!arrayFromOwn.length) {
+              ownFlag = 1;
             }
           }
 
@@ -532,23 +560,25 @@ import { fa } from 'vuetify/locale';
 
           if(mode) {
             // and
-            if(rentFlag || formatFlag || titleFlag || durationFlag || categoryFlag || theaterFlag || authorFlag || costumerFlag || lyricistFlag || choreoFlag || playersFlag || direcotrFlag) {
+            if(rentFlag || adaptationFlag || ownFlag || formatFlag || titleFlag || durationFlag || categoryFlag || theaterFlag || authorFlag || costumerFlag || lyricistFlag || choreoFlag || playersFlag || direcotrFlag) {
               // 一つでも該当DVDがない条件があった
               this.showDVDs = [];
             } else {
-              let array1 = this.extraAndArray(arrayFromRent, arrayFromFormat);
-              let array2 = this.extraAndArray(array1, arrayFromTitle);
-              let array3 = this.extraAndArray(array2, arrayFromDuration);
-              let array4 = this.extraAndArray(array3, arrayFromCategory);
-              let array5 = this.extraAndArray(array4, arrayFromTheater);
-              let array6 = this.extraAndArray(array5, arrayFromAuthor);
-              let array7 = this.extraAndArray(array6, arrayFromCostumer);
-              let array8 = this.extraAndArray(array7, arrayFromLyricist);
-              let array9 = this.extraAndArray(array8, arrayFromChoreo);
-              let array10 = this.extraAndArray(array9, arrayFromPlayers);
-              let array11 = this.extraAndArray(array10, arrayFromDirector);
+              let array1 = this.extraAndArray(arrayFromRent, arrayFromAdaptation);
+              let array2 = this.extraAndArray(array1, arrayFromOwn);
+              let array3 = this.extraAndArray(array2, arrayFromFormat);
+              let array4 = this.extraAndArray(array3, arrayFromTitle);
+              let array5 = this.extraAndArray(array4, arrayFromDuration);
+              let array6 = this.extraAndArray(array5, arrayFromCategory);
+              let array7 = this.extraAndArray(array6, arrayFromTheater);
+              let array8 = this.extraAndArray(array7, arrayFromAuthor);
+              let array9 = this.extraAndArray(array8, arrayFromCostumer);
+              let array10 = this.extraAndArray(array9, arrayFromLyricist);
+              let array11 = this.extraAndArray(array10, arrayFromChoreo);
+              let array12 = this.extraAndArray(array11, arrayFromPlayers);
+              let array13 = this.extraAndArray(array12, arrayFromDirector);
 
-              this.showDVDs = array11;
+              this.showDVDs = array13;
             }            
           } else {
             // or
@@ -557,21 +587,31 @@ import { fa } from 'vuetify/locale';
             let array2 = [];
             let array3 = [];
             let array4 = [];
+            let array5 = [];
+            let array6 = [];
             if(array.length) {
               array2 = this.extraAndArray(array, arrayFromRent);
             } else if(!title && !category && !theater && !author && !costumer && !lyricist && !choreo && !director && !players && !roles) {
               array2 = arrayFromRent;
             }
-            
+
             if(array2.length) {
-              array3 = this.extraAndArray(array2, arrayFromFormat);
+              array3 = this.extraAndArray(array2, arrayFromAdaptation);
             }
 
             if(array3.length) {
-              array4 = this.extraAndArray(array3, arrayFromDuration);
-            }            
+              array4 = this.extraAndArray(array3, arrayFromOwn);
+            }
+            
+            if(array4.length) {
+              array5 = this.extraAndArray(array4, arrayFromFormat);
+            }
 
-            this.showDVDs = array4;
+            if(array5.length) {
+              array6 = this.extraAndArray(array5, arrayFromDuration);
+            }
+
+            this.showDVDs = array6;
           }
         }
 

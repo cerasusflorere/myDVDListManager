@@ -20,29 +20,37 @@
             </div>
           </div>
 
-          <div class="detail-show-info-block">
+          <div v-if="!DVD.adaptation" class="detail-show-info-block">
+            <div class="detail-show-info-header">未映像化</div>
+          </div>
+
+          <div v-if="DVD.adaptation && !DVD.own" class="detail-show-info-block">
+            <div class="detail-show-info-header">持っていない</div>
+          </div>
+
+          <div v-if="DVD.adaptation || DVD.own" class="detail-show-info-block">
             <div class="detail-show-info-header">公式:</div>
             <div class="detail-show-info-header" v-if="DVD.official"><i class="fas fa-check fa-fw"></i></div>
             <div class="detail-show-info-header" v-else><i class="fas fa-times"></i></div>
           </div>
 
-          <div class="detail-show-info-block">
+          <div v-if="DVD.adaptation || DVD.own || DVD.format" class="detail-show-info-block">
             <div class="detail-show-info-header">媒体:</div>
-            <div class="detail-show-info-header" v-if="DVD.format == 1">DVD</div>
-            <div class="detail-show-info-header" v-else>Bluray</div>
+            <div class="detail-show-info-header" v-if="DVD.format === 1">DVD</div>
+            <div class="detail-show-info-header" v-else-if="DVD.format === 2">Bluray</div>
           </div>
 
-          <div class="detail-show-info-block">
+          <div v-if="DVD.adaptation || DVD.own" class="detail-show-info-block">
             <div class="detail-show-info-header">特典:</div>
             <div class="detail-show-info-header" v-if="DVD.special"><i class="fas fa-check fa-fw"></i></div>
             <div class="detail-show-info-header" v-else><i class="fas fa-times"></i></div>
           </div>
 
-          <div class="detail-show-info-block">
+          <div v-if="DVD.own && DVD.adaptation" class="detail-show-info-block">
             <div class="detail-show-info-header">貸出可否:</div>
             <div class="detail-show-info-header green" v-if="!rentFlag"><i class="far fa-circle"></i></div>
             <div class="detail-show-info-header red" v-else><i class="fas fa-times"></i></div>
-          </div> 
+          </div>
         </div>
 
         <div class="detail-show-info-line" v-if="DVD.url_DVD">
@@ -136,7 +144,7 @@
 
       <!-- ゲキ×シネ監督 -->
       <div class="detail-show-author-area" v-if="DVD.director">
-        <div class="detail-show-header">ゲキ×シネ監督</div>
+        <div class="detail-show-header detail-show-header-director">ゲキ×シネ監督</div>
         <div class="detail-show-author">{{ DVD.director }}</div>
       </div>
 
@@ -150,7 +158,7 @@
       <div class="detail-show-roles-area detail-show-other-flex" v-if="DVD.roles.length">
         <div class="detail-show-header">配役</div>
         <div class="detail-show-roles-block detail-show-other-width">
-          <div class="detail-show-role-area" v-for="role in DVD.roles">
+          <div ref="detail_show_role_areas" class="detail-show-role-area" v-for="role in DVD.roles">
             <div class="detail-show-role-role" v-if="role.role">{{ role.role }}:</div>
             <div class="detail-show-role-role" v-else></div>
             <div class="detail-show-role-content" v-if="role.player">{{ role.player }}</div>
@@ -1326,28 +1334,43 @@
 
           <div class="add-block-2">
             <div class="add-special-area">
-              <div class="add-special-area">
-                <label for="detail_edit_format_DVD" class="add-special-header add-official-header">
-                  DVD
-                </label>
-                <input type="radio" id="detail_edit_format_DVD" v-model="editDVD.format" value=1 class="add-special-input add-special" checked>
-              </div>
-
-              <div class="add-special-area">
-                <label for="detail_edit_format_Blu" class="add-special-header add-official-header">
-                  Blu-ray
-                </label>
-                <input type="radio" id="detail_edit_format_Blu" v-model="editDVD.format" value=2 class="add-special-input add-special">
-              </div>
+              <label for="detail_edit_adaptation" class="add-special-header add-official-header">
+                映像化
+              </label>
+              <input type="checkbox" id="detail_edit_adaptation" v-model="editDVD.adaptation" class="add-special-input add-special" checked>
             </div>
+
             <div class="add-special-area">
+              <label for="detail_edit_own" class="add-special-header add-official-header">
+                所有
+              </label>
+              <input type="checkbox" id="detail_edit_own" v-model="editDVD.own" class="add-special-input add-special" checked>
+            </div>
+
+            <div v-if="editDVD.adaptation" class="add-special-area">
               <label for="detail_edit_official" class="add-special-header add-official-header">
                 公式
               </label>
               <input type="checkbox" id="detail_edit_official" v-model="editDVD.official" class="add-special-input add-special" checked>
             </div>
 
-            <div class="add-special-area">
+            <div v-if="editDVD.adaptation && editDVD.official" class="add-special-area">
+              <div class="add-special-area">
+                <label for="detail_edit_format_DVD" class="add-special-header add-official-header">
+                  DVD
+                </label>
+                <input type="radio" id="detail_edit_format_DVD" @click="formatDeselection($event, 1)" v-model="editDVD.format" value=1 class="add-special-input add-special">
+              </div>
+
+              <div class="add-special-area">
+                <label for="detail_edit_format_Blu" class="add-special-header add-official-header">
+                  Blu-ray
+                </label>
+                <input type="radio" id="detail_edit_format_Blu" @click="formatDeselection($event, 2)" v-model="editDVD.format" value=2 class="add-special-input add-special">
+              </div>
+            </div>
+
+            <div v-if="editDVD.adaptation && editDVD.official" class="add-special-area">
               <label for="detail_edit_special" class="add-special-header">
                 特典
               </label>
@@ -1473,8 +1496,10 @@ export default {
         others: [],
         photos: [],
         rents: [],
-        format: 1,
+        adaptation: true,
+        own: true,
         official: true,
+        format: 2,
         special: false,
         url_DVD: '',
         url_movie: '',
@@ -1632,7 +1657,11 @@ export default {
       this.DVD.photos.sort((a, b) => a.order - b.order);
 
       this.originalDVD = JSON.parse(JSON.stringify(this.DVD));
-      if(this.originalDVD.rents) {
+      if(!this.DVD.own) {
+        this.rentFlag = 1;
+      } else if(!this.DVD.adaptation) {
+        this.rentFlag = 1;
+      } else if(this.originalDVD.rents) {
         this.rentFlag = this.DVD.rents.find(rent => rent.flag == 1);
       }
 
@@ -1774,8 +1803,10 @@ export default {
       
       this.editDVD.rents = this.originalDVD.rents ? this.originalDVD.rents : null;
 
-      this.editDVD.format = this.originalDVD.format;
+      this.editDVD.adaptation = this.originalDVD.adaptation ? true : false;
+      this.editDVD.own = this.originalDVD.own ? true : false;
       this.editDVD.official = this.originalDVD.official ? true : false;
+      this.editDVD.format = this.originalDVD.format;
       this.editDVD.special = this.originalDVD.special ? true : false;
       this.editDVD.url_DVD = this.originalDVD.url_DVD ? this.originalDVD.url_DVD : '';
       this.editDVD.url_movie = this.originalDVD.url_movie ? this.originalDVD.url_movie : '';
@@ -1799,6 +1830,16 @@ export default {
         }
 
         // 画面の大きさによって表示変更
+        // 配役
+        if(this.$refs.detail_show_role_areas) {
+          this.$refs.detail_show_role_areas.forEach(area => {
+            if(area.clientHeight > 24) {
+              area.classList.add('detail-show-role-area-column-1');
+              area.children[1].classList.add('detail-show-role-content-column-2');
+            }
+          });
+        }
+
         // 役感想
         if(this.$refs.detail_show_role_impression_headers) {
           this.$refs.detail_show_role_impression_headers.forEach(header => {
@@ -2087,6 +2128,17 @@ export default {
         }
     },
 
+    // フォーマットラジオボタン
+    formatDeselection(event, select) {
+      if(this.editDVD.format == select) {
+        this.editDVD.format = 0;
+        event.target.checked = false;
+      } else {
+        this.editDVD.format = select;
+        event.target.checked = true;
+      }
+    },
+
     // 写真プレビュー
     previewFileRoleImpression(roleImpressionIndex, roleImpresionsPhotoIndex, event) {
       this.errors.roleImpressions[roleImpressionIndex].photos[roleImpresionsPhotoIndex] = null;
@@ -2207,8 +2259,8 @@ export default {
       
       if(this.originalEditDVD.title !== this.editDVD.title || this.originalEditDVD.duration_from !== this.editDVD.duration_from || this.originalEditDVD.duration_to !== this.editDVD.duration_to
          || this.originalEditDVD.story !== this.editDVD.story || this.originalEditDVD.impression !== this.editDVD.impression || this.originalEditDVD.author !== this.editDVD.author || this.originalEditDVD.lyricist !== this.editDVD.lyricist || this.originalEditDVD.choreo !== this.editDVD.choreo || this.originalEditDVD.director !== this.editDVD.director
-         || this.originalEditDVD.format !== this.editDVD.format || this.originalEditDVD.official !== this.originalEditDVD.official
-         || this.originalEditDVD.special !== this.originalEditDVD.special || this.originalEditDVD.url_DVD !== this.editDVD.url_DVD || this.originalEditDVD.url_movie !== this.editDVD.url_movie || this.originalEditDVD.url_youtube !== this.editDVD.url_youtube || this.originalEditDVD.category !== this.editDVD.category
+         || this.originalEditDVD.adaptation !== this.editDVD.adaptation || this.originalEditDVD.own !== this.editDVD.own|| this.originalEditDVD.official !== this.editDVD.official || this.originalEditDVD.format !== this.editDVD.format
+         || this.originalEditDVD.special !== this.editDVD.special || this.originalEditDVD.url_DVD !== this.editDVD.url_DVD || this.originalEditDVD.url_movie !== this.editDVD.url_movie || this.originalEditDVD.url_youtube !== this.editDVD.url_youtube || this.originalEditDVD.category !== this.editDVD.category
       ) {
         this.flag = 1;
       }
@@ -2726,10 +2778,11 @@ export default {
           }
         });
         count = 0;
-
-        formData.append('format', this.editDVD.format);
-        formData.append('official', this.editDVD.official ? 1 : 0);
-        formData.append('special', this.editDVD.special ? 1 : 0);
+        formData.append('adaptation', this.editDVD.adaptation ? 1 : 0);
+        formData.append('own', this.editDVD.own ? 1 : 0);
+        formData.append('official', this.editDVD.adaptation ? this.editDVD.official ? 1 : 0 : 0);
+        formData.append('format', this.editDVD.adaptation && this.editDVD.official ? this.editDVD.format ? this.editDVD.format == 1 ? 1 : 2 : 0 : 0);
+        formData.append('special', this.editDVD.adaptation && this.editDVD.official ? this.editDVD.special ? 1 : 0 : 0);
         formData.append('url_DVD', this.editDVD.url_DVD);
         formData.append('url_movie', this.editDVD.url_movie);
         formData.append('url_youtube', this.editDVD.url_youtube);
@@ -2896,8 +2949,10 @@ export default {
         others: [],
         photos: [],
         rents: [],
-        format: 1,
+        adaptation: true,
+        own: true,
         official: true,
+        format: 2,
         special: false,
         url_DVD: '',
         url_movie: '',
